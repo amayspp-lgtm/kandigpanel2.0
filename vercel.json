@@ -1,12 +1,14 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)?admin-key=secret",
-      "destination": "/index.html"
+      "src": "/(.*)?admin-key=secret",
+      "dest": "/index.html",
+      "status": 307
     },
     {
-      "source": "/(.*)",
-      "destination": "/maintenance.html"
+      "src": "/(.*)",
+      "dest": "/maintenance.html",
+      "status": 307
     }
   ]
 }
