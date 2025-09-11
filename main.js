@@ -1,7 +1,8 @@
 // src/main.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- KONFIGURASI PENTING UNTUK CLIENT-SIDE (tidak sensitif) ---
+    console.log('DOM Content Loaded. Script dimulai.');
+
     const YOUR_VALIDATION_API_ENDPOINT = '/api/validate-access-key'; 
     const YOUR_CREATE_PANEL_API_ENDPOINT = '/api/create-panel';
     
@@ -18,8 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "10gb": { ram: 10240, disk: 10240, cpu: 200, name: "10 GB" },
         "unlimited": { ram: 0, disk: 0, cpu: 0, name: "Unlimited" }
     };
-    // --- AKHIR KONFIGURASI CLIENT-SIDE ---
-
 
     const createPanelForm = document.getElementById('createPanelForm');
     const createButton = document.getElementById('createButton');
@@ -37,8 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const banPopupUntil = document.getElementById('popup-until');
     const closePopupBtn = document.getElementById('close-popup-btn');
 
-    // Fungsi untuk memuat logo kustom
-    const CUSTOM_LOGO_URL = ''; // Opsional: Atur URL logo kustom Anda di sini
+    const CUSTOM_LOGO_URL = '';
     function loadCustomLogo() {
         if (CUSTOM_LOGO_URL) {
             logoContainer.innerHTML = `<img src="${CUSTOM_LOGO_URL}" alt="Custom Logo" class="custom-logo">`;
@@ -113,24 +111,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     createPanelForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
-        createButton.disabled = true;
-        createButton.classList.add('loading');
-        createButtonText.textContent = 'MEMBUAT PANEL';
-        loadingSpinner.style.display = 'flex';
-
-        hideMainMessage();
-
-        const accessKey = document.getElementById('accessKey').value;
-        const selectedPanelType = panelTypeSelect.value;
-        const username = document.getElementById('username').value;
-        const hostingPackage = document.getElementById('hostingPackage').value;
+        console.log('1. Event submit dicegah. Memulai proses...');
 
         try {
+            console.log('2. Memastikan elemen-elemen form ditemukan...');
+            if (!createButton || !createButtonText || !loadingSpinner) {
+                console.error('Error: Salah satu elemen penting tidak ditemukan di HTML.');
+                throw new Error('Elemen form tidak lengkap.');
+            }
+
+            createButton.disabled = true;
+            createButton.classList.add('loading');
+            createButtonText.textContent = 'MEMBUAT PANEL';
+            loadingSpinner.style.display = 'flex';
+            console.log('3. Status loading sudah aktif.');
+
+            hideMainMessage();
+
+            const accessKey = document.getElementById('accessKey').value;
+            const selectedPanelType = panelTypeSelect.value;
+            const username = document.getElementById('username').value;
+            const hostingPackage = document.getElementById('hostingPackage').value;
+            
+            console.log('4. Memvalidasi Access Key...');
             const validateUrl = `${YOUR_VALIDATION_API_ENDPOINT}?accessKey=${encodeURIComponent(accessKey)}`;
             const validationResponse = await fetch(validateUrl, { method: 'GET' });
             const validationData = await validationResponse.json();
-
+            
             if (!validationData.isValid) {
                 if (validationData.details) {
                     showBanPopup(validationData.details);
@@ -139,54 +146,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return;
             }
-        } catch (error) {
-            console.error('Error saat validasi Access Key:', error);
-            showToast('error', 'Terjadi masalah saat memvalidasi Access Key. Coba lagi nanti.');
-            return;
-        }
+            console.log('5. Access Key valid. Melanjutkan ke pembuatan panel...');
 
-        if (!selectedPanelType) {
-            showToast('error', 'Silakan pilih tipe panel (Public/Private)!');
-            return;
-        }
+            if (!selectedPanelType) {
+                showToast('error', 'Silakan pilih tipe panel (Public/Private)!');
+                return;
+            }
 
-        if (!username || !hostingPackage) {
-            showToast('error', 'Username dan Paket Hosting harus diisi!');
-            return;
-        }
+            if (!username || !hostingPackage) {
+                showToast('error', 'Username dan Paket Hosting harus diisi!');
+                return;
+            }
 
-        const usernameInput = document.getElementById('username');
-        if (!usernameInput.checkValidity()) {
-            showToast('error', `Username tidak valid: ${usernameInput.title}`);
-            return;
-        }
+            const usernameInput = document.getElementById('username');
+            if (!usernameInput.checkValidity()) {
+                showToast('error', `Username tidak valid: ${usernameInput.title}`);
+                return;
+            }
 
-        const selectedPackage = PACKAGES[hostingPackage];
-        if (!selectedPackage) {
-            showToast('error', 'Pilih paket hosting yang valid.');
-            return;
-        }
+            const selectedPackage = PACKAGES[hostingPackage];
+            if (!selectedPackage) {
+                showToast('error', 'Pilih paket hosting yang valid.');
+                return;
+            }
 
-        const { ram, disk, cpu } = selectedPackage;
-        
-        const requestParams = new URLSearchParams({
-            username: username,
-            ram: ram,
-            disk: disk,
-            cpu: cpu,
-            hostingPackage: hostingPackage, 
-            panelType: selectedPanelType, 
-            accessKey: accessKey,
-        }).toString();
+            const { ram, disk, cpu } = selectedPackage;
+            
+            const requestParams = new URLSearchParams({
+                username: username,
+                ram: ram,
+                disk: disk,
+                cpu: cpu,
+                hostingPackage: hostingPackage, 
+                panelType: selectedPanelType, 
+                accessKey: accessKey,
+            }).toString();
 
-        const finalRequestUrl = `${YOUR_CREATE_PANEL_API_ENDPOINT}?${requestParams}`;
+            const finalRequestUrl = `${YOUR_CREATE_PANEL_API_ENDPOINT}?${requestParams}`;
 
-        try {
+            console.log('6. Mengirim permintaan pembuatan panel ke API...');
             const response = await fetch(finalRequestUrl, {
                 method: 'GET',
             });
-
             const data = await response.json();
+            
+            console.log('7. Respons dari API diterima:', data);
 
             if (response.ok && data.status) {
                 const result = data.result;
@@ -230,21 +234,24 @@ Domain: ${panelDomainUrl}
                 showMainMessage('success', successMessageHTML); 
                 createPanelForm.reset(); 
                 showToast('success', 'Panel berhasil dibuat!'); 
+                console.log('8. Proses berhasil. Pesan sukses ditampilkan.');
 
             } else {
                 const errorMessage = data.message || 'Terjadi kesalahan saat membuat panel.';
                 showMainMessage('error', `<b>Gagal membuat server!</b><br>Pesan: ${errorMessage}`); 
                 showToast('error', 'Gagal membuat panel!'); 
+                console.log('9. Proses gagal. Pesan error ditampilkan.');
             }
         } catch (error) {
-            console.error('Error saat menghubungi Serverless Function Create Panel:', error);
+            console.error('Fatal Error:', error);
             showMainMessage('error', `Terjadi kesalahan jaringan atau server tidak merespons: ${error.message}.`); 
-            showToast('error', 'Kesalahan koneksi Serverless API (Create Panel)!'); 
+            showToast('error', 'Kesalahan koneksi Serverless API!'); 
         } finally {
             createButton.disabled = false;
             createButton.classList.remove('loading');
             createButtonText.textContent = 'CREATE PANEL';
             loadingSpinner.style.display = 'none';
+            console.log('10. Proses selesai. Loading dimatikan.');
         }
     });
 
