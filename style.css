@@ -68,29 +68,20 @@ body {
 
 #logo-container {
     margin-top: 20px;
-    margin-bottom: 20px; /* Jarak antara logo/ikon dan form */
+    margin-bottom: 20px;
 }
 
 .icon-logo {
-    font-size: 4em; /* Ukuran ikon mikrochip */
+    font-size: 4em;
     color: var(--secondary-accent);
     text-shadow: 0 0 15px var(--secondary-accent);
 }
 
 .custom-logo {
-    max-width: 150px; /* Ukuran maksimal logo gambar */
+    max-width: 150px;
     height: auto;
-    border-radius: 8px; /* Jika ingin sedikit rounded */
+    border-radius: 8px;
 }
-
-/* Deskripsi dihilangkan, jadi bagian ini tidak lagi diperlukan
-.info-panel p {
-    font-size: 1em;
-    font-weight: 400;
-    line-height: 1.6;
-    max-width: 350px;
-}
-*/
 
 .form-panel {
     padding: 40px;
