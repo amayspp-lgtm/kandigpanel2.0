@@ -6,6 +6,11 @@
       "status": 307
     },
     {
+      "src": "/maintenance.html",
+      "dest": "/maintenance.html",
+      "status": 307
+    },
+    {
       "src": "/(.*)",
       "dest": "/maintenance.html",
       "status": 307
