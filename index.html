@@ -3,99 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Creator</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <title>Website is Under Maintenance</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .icon {
+            font-size: 6rem;
+            color: #FFD700; /* Warna kuning emas */
+            margin-bottom: 20px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            line-height: 1.6;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-
-    <div class="main-layout">
-        <div class="info-panel">
-            <h1>Panel Creator</h1>
-            <div id="logo-container">
-                <i class="fas fa-microchip icon-logo"></i>
-            </div>
-            
-        </div>
-
-        <div class="form-panel">
-            <form id="createPanelForm">
-                <div class="form-group">
-                    <label for="accessKey">
-                        <i class="fas fa-key icon-label"></i>Access Key
-                    </label>
-                    <input type="password" id="accessKey" name="accessKey" placeholder="Masukkan Access Key Anda" class="form-input" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="panelType">
-                        <i class="fas fa-server icon-label"></i>Tipe Panel
-                    </label>
-                    <select id="panelType" name="panelType" class="form-input" required>
-                        <option value="" disabled selected>Pilih Tipe Panel</option>
-                        <option value="public">Public Panel</option>
-                        <option value="private">Private Panel</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="username">
-                        <i class="fas fa-user icon-label"></i>Username
-                    </label>
-                    <input type="text" id="username" name="username" placeholder="Contoh: user_keren2025" class="form-input" required minlength="4" maxlength="16" pattern="^[a-zA-Z0-9_.-]+$" title="Hanya huruf, angka, underscore, titik, atau dash. Minimal 4, Maksimal 16 karakter.">
-                </div>
-
-                <div class="form-group">
-                    <label for="hostingPackage">
-                        <i class="fas fa-box icon-label"></i>Paket Hosting
-                    </label>
-                    <select id="hostingPackage" name="hostingPackage" class="form-input" required>
-                        <option value="" disabled selected>Pilih Paket</option>
-                        <option value="unlimited">Unlimited</option>
-                        <option value="10gb">10 GB</option>
-                        <option value="9gb">9 GB</option>
-                        <option value="8gb">8 GB</option>
-                        <option value="7gb">7 GB</option>
-                        <option value="6gb">6 GB</option>
-                        <option value="5gb">5 GB</option>
-                        <option value="4gb">4 GB</option>
-                        <option value="3gb">3 GB</option>
-                        <option value="2gb">2 GB</option>
-                        <option value="1gb">1 GB</option>
-                    </select>
-                </div>
-    
-                <button type="submit" id="createButton" class="form-button">
-                    <span>Create Panel</span>
-                    <span class="loader-dots" id="loadingSpinner">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </span>
-                </button>
-            </form>
-            
-            <div id="responseMessage" class="response-message"></div>
-        </div>
-
+    <div class="container">
+        <i class="fas fa-tools icon"></i>
+        <h1>Website Sedang Dalam Perawatan</h1>
+        <p>Kami sedang melakukan pembaruan penting untuk meningkatkan layanan kami. Mohon maaf atas ketidaknyamanan ini dan silakan kembali lagi dalam beberapa saat.</p>
     </div>
-
-    <div id="toast-notification-container"></div>
-    <div id="ban-popup-overlay" class="hidden">
-        <div id="ban-popup" class="ban-popup">
-            <h2 id="popup-title"></h2>
-            <div class="popup-content">
-                <p><strong>Status:</strong> <span id="popup-status"></span></p>
-                <p><strong>Alasan:</strong> <span id="popup-reason"></span></p>
-                <p><strong>Berakhir Pada:</strong> <span id="popup-until"></span></p>
-            </div>
-            <button id="close-popup-btn" class="form-button">Tutup</button>
-        </div>
-    </div>
-    
-    <script src="main.js"></script>
 </body>
 </html>
