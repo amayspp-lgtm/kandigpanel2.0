@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/(.*)?admin-key=secret",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/maintenance.html"
     }
