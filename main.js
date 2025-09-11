@@ -2,9 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- KONFIGURASI PENTING UNTUK CLIENT-SIDE (tidak sensitif) ---
-    // Variabel IS_PUBLIC_PANEL_ENABLED dan IS_PRIVATE_PANEL_ENABLED Dihapus
-    // karena opsi akan ditampilkan secara langsung.
-
     // URL ke Serverless Function Anda di Vercel (ini adalah path relatif)
     const YOUR_VALIDATION_API_ENDPOINT = '/api/validate-access-key'; 
     const YOUR_CREATE_PANEL_API_ENDPOINT = '/api/create-panel';
@@ -92,21 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, duration);
     }
 
-    // FUNGSI POPULASI DROPDOWN DENGAN LOGIKA BARU
-    function populatePanelTypeDropdown() {
-        panelTypeSelect.innerHTML = '<option value="" disabled selected>Pilih Tipe Panel</option>';
-        
-        // Hapus logika if/else dan langsung tambahkan opsi
-        const publicOption = document.createElement('option');
-        publicOption.value = 'public';
-        publicOption.textContent = 'Public Panel';
-        panelTypeSelect.appendChild(publicOption);
-
-        const privateOption = document.createElement('option');
-        privateOption.value = 'private';
-        privateOption.textContent = 'Private Panel';
-        panelTypeSelect.appendChild(privateOption);
-    }
+    // Fungsi populatePanelTypeDropdown sekarang tidak diperlukan lagi
     
     function showBanPopup(details) {
         banPopupTitle.textContent = details.status === 'Suspended' ? 'Access Key Ditangguhkan' : 'Access Key Diban';
@@ -130,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadCustomLogo(); 
-    populatePanelTypeDropdown();
+    // Tidak lagi memanggil populatePanelTypeDropdown() di sini
 
     createPanelForm.addEventListener('submit', async (event) => {
         event.preventDefault();
