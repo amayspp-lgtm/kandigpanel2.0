@@ -1,14 +1,14 @@
 {
-  "routes": [
+  "redirects": [
     {
-      "src": "/(.*)?admin-key=secret",
-      "dest": "/index.html",
-      "status": 307
+      "source": "/(.*)?admin-key=secret",
+      "destination": "/index.html",
+      "permanent": false
     },
     {
-      "src": "/(.*)",
-      "dest": "/maintenance.html",
-      "status": 307
+      "source": "/((?!maintenance.html).*)",
+      "destination": "/maintenance.html",
+      "permanent": false
     }
   ]
 }
