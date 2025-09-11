@@ -2,14 +2,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- KONFIGURASI PENTING UNTUK CLIENT-SIDE (tidak sensitif) ---
-    const IS_PUBLIC_PANEL_ENABLED = true; // Ganti ke false jika tidak ingin panel publik
-    const IS_PRIVATE_PANEL_ENABLED = true; // Ganti ke false jika tidak ingin panel private
+    // Variabel IS_PUBLIC_PANEL_ENABLED dan IS_PRIVATE_PANEL_ENABLED Dihapus
+    // karena opsi akan ditampilkan secara langsung.
 
-    // Opsional: Atur URL logo kustom Anda di sini. Biarkan kosong jika ingin menggunakan ikon mikrochip.
-    // Contoh: 'https://your-domain.com/path/to/your/logo.png'
-    const CUSTOM_LOGO_URL = 'https://files.catbox.moe/1tjzsl.png'; 
-    // --- AKHIR KONFIGURASI CLIENT-SIDE ---
-
+    // URL ke Serverless Function Anda di Vercel (ini adalah path relatif)
     const YOUR_VALIDATION_API_ENDPOINT = '/api/validate-access-key'; 
     const YOUR_CREATE_PANEL_API_ENDPOINT = '/api/create-panel';
     
@@ -26,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "10gb": { ram: 10240, disk: 10240, cpu: 200, name: "10 GB" },
         "unlimited": { ram: 0, disk: 0, cpu: 0, name: "Unlimited" }
     };
+    // --- AKHIR KONFIGURASI CLIENT-SIDE ---
+
 
     const createPanelForm = document.getElementById('createPanelForm');
     const createButton = document.getElementById('createButton');
@@ -34,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const responseMessageDiv = document.getElementById('responseMessage');
     const toastContainer = document.getElementById('toast-notification-container');
     const panelTypeSelect = document.getElementById('panelType');
-    const logoContainer = document.getElementById('logo-container'); // Tambahkan ini
+    const logoContainer = document.getElementById('logo-container');
 
     const banPopupOverlay = document.getElementById('ban-popup-overlay');
     const banPopupTitle = document.getElementById('popup-title');
@@ -44,11 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const closePopupBtn = document.getElementById('close-popup-btn');
 
     // Fungsi untuk memuat logo kustom
+    const CUSTOM_LOGO_URL = ''; // Opsional: Atur URL logo kustom Anda di sini
     function loadCustomLogo() {
         if (CUSTOM_LOGO_URL) {
             logoContainer.innerHTML = `<img src="${CUSTOM_LOGO_URL}" alt="Custom Logo" class="custom-logo">`;
         } else {
-            // Jika CUSTOM_LOGO_URL kosong, gunakan ikon mikrochip default
             logoContainer.innerHTML = '<i class="fas fa-microchip icon-logo"></i>';
         }
     }
@@ -85,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         toastContainer.appendChild(toast);
-        void toast.offsetWidth; // Force reflow
+        void toast.offsetWidth;
         toast.classList.add('show');
 
         setTimeout(() => {
@@ -94,36 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }, duration);
     }
 
+    // FUNGSI POPULASI DROPDOWN DENGAN LOGIKA BARU
     function populatePanelTypeDropdown() {
         panelTypeSelect.innerHTML = '<option value="" disabled selected>Pilih Tipe Panel</option>';
         
-        let optionsAdded = 0;
-        if (IS_PUBLIC_PANEL_ENABLED) {
-            const publicOption = document.createElement('option');
-            publicOption.value = 'public';
-            publicOption.textContent = 'Public Panel';
-            panelTypeSelect.appendChild(publicOption);
-            optionsAdded++;
-        }
+        // Hapus logika if/else dan langsung tambahkan opsi
+        const publicOption = document.createElement('option');
+        publicOption.value = 'public';
+        publicOption.textContent = 'Public Panel';
+        panelTypeSelect.appendChild(publicOption);
 
-        if (IS_PRIVATE_PANEL_ENABLED) {
-            const privateOption = document.createElement('option');
-            privateOption.value = 'private';
-            privateOption.textContent = 'Private Panel';
-            panelTypeSelect.appendChild(privateOption);
-            optionsAdded++;
-        }
-
-        if (optionsAdded === 0) {
-            const noOption = document.createElement('option');
-            noOption.value = '';
-            noOption.textContent = 'Tidak ada panel tersedia';
-            noOption.disabled = true;
-            panelTypeSelect.appendChild(noOption);
-            panelTypeSelect.disabled = true;
-        } else if (optionsAdded === 1) {
-            panelTypeSelect.selectedIndex = 1;
-        }
+        const privateOption = document.createElement('option');
+        privateOption.value = 'private';
+        privateOption.textContent = 'Private Panel';
+        panelTypeSelect.appendChild(privateOption);
     }
     
     function showBanPopup(details) {
@@ -147,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         banPopupOverlay.classList.add('hidden');
     });
 
-    // Panggil fungsi ini saat DOM dimuat
     loadCustomLogo(); 
     populatePanelTypeDropdown();
 
