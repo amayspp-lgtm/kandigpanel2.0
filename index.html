@@ -3,640 +3,461 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Creator - Public/Private</title>
-    <style>
-        /* --- CSS DI SINI --- */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap'); /* For H1 */
-
-        :root {
-            --bg-color: #0d1117; /* Deep dark blue-black */
-            --container-bg: #161b22; /* Slightly lighter container */
-            --border-color: #30363d; /* Dark border */
-            --text-color: #c9d1d9; /* Light off-white text */
-            --primary-accent: #58a6ff; /* Cyan/Light Blue for primary elements */
-            --secondary-accent: #a464f4; /* Purple for secondary accents */
-            --success-color: #3fb950; /* Green for success */
-            --error-color: #f85149; /* Red for errors */
-            --input-bg: #11141a; /* Even darker for inputs */
-            --placeholder-color: #8b949e;
-            --shadow-color: rgba(0, 0, 0, 0.7);
-            --gradient-1: linear-gradient(90deg, #61dafb 0%, #a464f4 100%); /* Adjusted gradient */
-            --gradient-2: linear-gradient(90deg, #a464f4 0%, #3fb950 100%); /* New gradient for secondary actions */
-        }
-
-        /* General Styles */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-
-        .container {
-            background-color: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 30px var(--shadow-color);
-            width: 100%;
-            max-width: 600px;
-            box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: -50px;
-            width: 150px;
-            height: 150px;
-            background: rgba(88, 166, 255, 0.1);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            animation: moveGradient 15s linear infinite;
-        }
-
-        @keyframes moveGradient {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(100px, 50px); }
-            50% { transform: translate(0, 100px); }
-            75% { transform: translate(-100px, 50px); }
-            100% { transform: translate(0, 0); }
-        }
-
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary-accent);
-            text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-
-        p {
-            color: var(--placeholder-color);
-            font-size: 0.9em;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-color);
-            font-size: 1em;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--primary-accent);
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
-        }
-        
-        input::placeholder {
-            color: var(--placeholder-color);
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .radio-option {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .radio-option label {
-            width: 100%;
-            padding: 15px;
-            background-color: var(--input-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .radio-option input[type="radio"] {
-            display: none;
-        }
-
-        .radio-option input[type="radio"]:checked + label {
-            background-color: rgba(88, 166, 255, 0.1);
-            border-color: var(--primary-accent);
-            color: var(--primary-accent);
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(88, 166, 255, 0.15);
-        }
-        
-        .radio-option span {
-            display: block;
-            margin-top: 5px;
-            font-size: 0.8em;
-            color: var(--placeholder-color);
-        }
-        
-        .panel-options .radio-option.public label {
-             background-color: var(--container-bg);
-             border-color: var(--primary-accent);
-             color: var(--primary-accent);
-        }
-        
-        .panel-options .radio-option.private label {
-             background-color: var(--container-bg);
-             border-color: var(--secondary-accent);
-             color: var(--secondary-accent);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, background-image 0.3s;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-        
-        button.create-button {
-            background-image: var(--gradient-1);
-            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.3);
-        }
-
-        button.create-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(88, 166, 255, 0.4);
-        }
-        
-        button.activate-button {
-             background-image: var(--gradient-2);
-             box-shadow: 0 4px 15px rgba(164, 100, 244, 0.3);
-             margin-top: 10px;
-        }
-        
-        button.activate-button:hover:not(:disabled) {
-             transform: translateY(-2px);
-             box-shadow: 0 6px 20px rgba(164, 100, 244, 0.4);
-        }
-        
-        button:disabled {
-            background-color: #30363d;
-            cursor: not-allowed;
-            opacity: 0.6;
-            box-shadow: none;
-        }
-
-        #result-container {
-            margin-top: 25px;
-            padding: 20px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            text-align: left;
-            display: none; /* Default to hidden */
-            position: relative;
-        }
-        
-        #result-container h3 {
-            margin-top: 0;
-            color: var(--primary-accent);
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-        }
-        
-        .result-item {
-            margin-bottom: 10px;
-            word-wrap: break-word; /* To prevent long text from overflowing */
-        }
-        
-        .result-item label {
-            color: var(--placeholder-color);
-            font-size: 0.9em;
-            display: block;
-        }
-        
-        .result-value {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .result-value strong {
-            color: var(--text-color);
-            flex-grow: 1;
-        }
-        
-        .copy-button, .copy-all-button {
-            background-color: var(--border-color);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            color: var(--text-color);
-            font-size: 0.8em;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            white-space: nowrap;
-        }
-        
-        .copy-button:hover, .copy-all-button:hover {
-            background-color: #404c59;
-        }
-
-        #toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toast-notification {
-            background-color: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-color);
-            animation: slideInRight 0.4s ease-out forwards, fadeOut 0.5s ease-in forwards 2.5s;
-            transform: translateX(100%);
-            opacity: 0;
-            min-width: 250px;
-            max-width: 350px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-
-        .toast-notification.success { border-left: 4px solid var(--success-color); }
-        .toast-notification.error { border-left: 4px solid var(--error-color); }
-        .toast-notification.info { border-left: 4px solid var(--primary-accent); }
-
-        .toast-notification .icon { font-size: 1.4em; line-height: 1; }
-        .toast-notification.success .icon { color: var(--success-color); }
-        .toast-notification.error .icon { color: var(--error-color); }
-        .toast-notification.info .icon { color: var(--primary-accent); }
-
-        @keyframes slideInRight {
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-            to { opacity: 0; }
-        }
-
-    </style>
+    <title>Panel Creator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>PANEL CREATOR</h1>
-        <form id="creator-form">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" placeholder="Masukkan username" required>
+
+    <div class="main-layout">
+        <div class="info-panel">
+            <h1>Panel Creator</h1>
+            <div id="logo-container">
+                <i class="fas fa-microchip icon-logo"></i>
             </div>
             
-            <div class="form-group">
-                <label for="access-key">Access Key:</label>
-                <input type="text" id="access-key" placeholder="Masukkan Access Key" required>
-            </div>
+        </div>
+
+        <div class="form-panel">
+            <form id="createPanelForm">
+                <div class="form-group">
+                    <label for="accessKey">
+                        <i class="fas fa-key icon-label"></i>Access Key
+                    </label>
+                    <input type="password" id="accessKey" name="accessKey" placeholder="Masukkan Access Key Anda" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="panelType">
+                        <i class="fas fa-server icon-label"></i>Tipe Panel
+                    </label>
+                    <select id="panelType" name="panelType" class="form-input" required>
+                        <option value="" disabled selected>Pilih Tipe Panel</option>
+                        <option value="public">Public Panel</option>
+                        <option value="private">Private Panel</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user icon-label"></i>Username
+                    </label>
+                    <input type="text" id="username" name="username" placeholder="Contoh: user_keren2025" class="form-input" required minlength="4" maxlength="16" pattern="^[a-zA-Z0-9_.-]+$" title="Hanya huruf, angka, underscore, titik, atau dash. Minimal 4, Maksimal 16 karakter.">
+                </div>
+
+                <div class="form-group">
+                    <label for="hostingPackage">
+                        <i class="fas fa-box icon-label"></i>Paket Hosting
+                    </label>
+                    <select id="hostingPackage" name="hostingPackage" class="form-input" required>
+                        <option value="" disabled selected>Pilih Paket</option>
+                        <option value="unlimited">Unlimited</option>
+                        <option value="10gb">10 GB</option>
+                        <option value="9gb">9 GB</option>
+                        <option value="8gb">8 GB</option>
+                        <option value="7gb">7 GB</option>
+                        <option value="6gb">6 GB</option>
+                        <option value="5gb">5 GB</option>
+                        <option value="4gb">4 GB</option>
+                        <option value="3gb">3 GB</option>
+                        <option value="2gb">2 GB</option>
+                        <option value="1gb">1 GB</option>
+                    </select>
+                </div>
+    
+                <button type="submit" id="createButton" class="form-button">
+                    <span>Create Panel</span>
+                    <span class="loader-dots" id="loadingSpinner">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </span>
+                </button>
+            </form>
             
-            <div class="form-group">
-                <label>Pilih Paket:</label>
-                <div class="radio-group" id="package-options">
-                    </div>
-            </div>
-
-            <div class="form-group">
-                <label>Pilih Tipe Panel:</label>
-                <div class="radio-group panel-options" id="panel-type-options">
-                    <div class="radio-option" id="public-panel-option">
-                        <input type="radio" id="public" name="panel-type" value="public" checked>
-                        <label for="public">Public</label>
-                    </div>
-                    <div class="radio-option" id="private-panel-option">
-                        <input type="radio" id="private" name="panel-type" value="private">
-                        <label for="private">Private</label>
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="create-button">Buat Panel</button>
-            <button type="button" id="request-activation-button" class="activate-button" style="display: none;">Minta Aktivasi</button>
-        </form>
-        
-        <div id="result-container" style="display: none;">
-            <h3>Detail Panel Anda</h3>
-            <div class="result-item">
-                <label>Username:</label>
-                <div class="result-value">
-                    <strong id="display-username"></strong>
-                    <button type="button" class="copy-button" data-copy-target="copyUsernameValue">Salin</button>
-                </div>
-            </div>
-            <div class="result-item">
-                <label>Password:</label>
-                <div class="result-value">
-                    <strong id="display-password"></strong>
-                    <button type="button" class="copy-button" data-copy-target="copyPasswordValue">Salin</button>
-                </div>
-            </div>
-            <div class="result-item">
-                <label>Domain:</label>
-                <div class="result-value">
-                    <strong id="display-domain"></strong>
-                    <button type="button" class="copy-button" data-copy-target="copyDomainValue">Salin</button>
-                </div>
-            </div>
-            <button type="button" class="copy-all-button">Salin Semua Detail</button>
+            <div id="responseMessage" class="response-message"></div>
         </div>
     </div>
-    <div id="toast-container"></div>
-    <script type="module">
+
+    <div id="toast-notification-container"></div>
+    
+    <div id="ban-popup-overlay" class="hidden">
+        <div id="ban-popup" class="ban-popup">
+            <h2 id="popup-title"></h2>
+            <div class="popup-content">
+                <p><strong>Status:</strong> <span id="popup-status"></span></p>
+                <p><strong>Alasan:</strong> <span id="popup-reason"></span></p>
+                <p><strong>Berakhir Pada:</strong> <span id="popup-until"></span></p>
+            </div>
+            <button id="close-popup-btn" class="form-button">Tutup</button>
+        </div>
+    </div>
+
+    <div id="activation-popup-overlay" class="hidden">
+        <div id="activation-popup" class="activation-popup">
+            <h2 id="activation-title">Akses Kunci Belum Diaktifkan</h2>
+            <div class="activation-content">
+                <p>Mohon maaf, perangkat Anda belum diotorisasi untuk menggunakan kunci ini.</p>
+                <p>Klik tombol di bawah ini untuk mengirim permintaan otorisasi kepada admin.</p>
+            </div>
+            <button id="request-activation-btn" class="form-button">Minta Aktivasi</button>
+        </div>
+    </div>
+    
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- KONFIGURASI PENTING UNTUK CLIENT-SIDE (tidak sensitif) ---
-            const IS_PUBLIC_PANEL_ENABLED = true; // Langsung diatur ke true
-            const IS_PRIVATE_PANEL_ENABLED = true; // Langsung diatur ke true
-        
-            const YOUR_VERCEL_API_ENDPOINT = '/api/create-panel';
-            const VALIDATE_KEY_ENDPOINT = '/api/validate-access-key';
-            const REQUEST_ACTIVATION_ENDPOINT = '/api/request-activation';
-        
+            console.log('DOM Content Loaded. Script dimulai.');
+
+            const YOUR_VALIDATION_API_ENDPOINT = '/api/validate-access-key'; 
+            const YOUR_CREATE_PANEL_API_ENDPOINT = '/api/create-panel';
+            const YOUR_REQUEST_ACTIVATION_API_ENDPOINT = '/api/request-activation';
+            
             const PACKAGES = {
                 "1gb": { ram: 1024, disk: 1024, cpu: 100, name: "1 GB" },
                 "2gb": { ram: 2048, disk: 2048, cpu: 100, name: "2 GB" },
                 "3gb": { ram: 3072, disk: 3072, cpu: 100, name: "3 GB" },
                 "4gb": { ram: 4096, disk: 4096, cpu: 100, name: "4 GB" },
+                "5gb": { ram: 5120, disk: 5120, cpu: 100, name: "5 GB" },
+                "6gb": { ram: 6144, disk: 6144, cpu: 100, name: "6 GB" },
+                "7gb": { ram: 7168, disk: 7168, cpu: 100, name: "7 GB" },
+                "8gb": { ram: 8192, disk: 8192, cpu: 150, name: "8 GB" },
+                "9gb": { ram: 9216, disk: 9216, cpu: 150, name: "9 GB" },
+                "10gb": { ram: 10240, disk: 10240, cpu: 200, name: "10 GB" },
+                "unlimited": { ram: 0, disk: 0, cpu: 0, name: "Unlimited" }
             };
-        
-            const usernameInput = document.getElementById('username');
-            const accessKeyInput = document.getElementById('access-key');
-            const packageOptions = document.getElementById('package-options');
-            const panelTypeOptions = document.getElementById('panel-type-options');
-            const form = document.getElementById('creator-form');
-            const createButton = form.querySelector('.create-button');
-            const requestActivationButton = document.getElementById('request-activation-button');
-            const resultContainer = document.getElementById('result-container');
-            const toastContainer = document.getElementById('toast-container');
+
+            const createPanelForm = document.getElementById('createPanelForm');
+            const createButton = document.getElementById('createButton');
+            const createButtonText = createButton.querySelector('span:first-child');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const responseMessageDiv = document.getElementById('responseMessage');
+            const toastContainer = document.getElementById('toast-notification-container');
+            const panelTypeSelect = document.getElementById('panelType');
+            const logoContainer = document.getElementById('logo-container');
+
+            const banPopupOverlay = document.getElementById('ban-popup-overlay');
+            const banPopupTitle = document.getElementById('popup-title');
+            const banPopupStatus = document.getElementById('popup-status');
+            const banPopupReason = document.getElementById('popup-reason');
+            const banPopupUntil = document.getElementById('popup-until');
+            const closePopupBtn = document.getElementById('close-popup-btn');
+
+            const activationPopupOverlay = document.getElementById('activation-popup-overlay');
+            const requestActivationBtn = document.getElementById('request-activation-btn');
+            const activationTitle = document.getElementById('activation-title');
+            const activationContent = document.getElementById('activation-content');
+
+            const CUSTOM_LOGO_URL = '';
+            function loadCustomLogo() {
+                if (CUSTOM_LOGO_URL) {
+                    logoContainer.innerHTML = `<img src="${CUSTOM_LOGO_URL}" alt="Custom Logo" class="custom-logo">`;
+                } else {
+                    logoContainer.innerHTML = '<i class="fas fa-microchip icon-logo"></i>';
+                }
+            }
+
+            function showMainMessage(type, messageHTML) {
+                responseMessageDiv.style.display = 'block';
+                responseMessageDiv.className = `response-message ${type}`; 
+                responseMessageDiv.innerHTML = messageHTML;
+            }
+
+            function hideMainMessage() {
+                responseMessageDiv.style.display = 'none';
+                responseMessageDiv.className = `response-message`;
+                responseMessageDiv.innerHTML = '';
+            }
+
+            function showToast(type, message, duration = 3000) {
+                const toast = document.createElement('div');
+                toast.classList.add('toast-notification', type); 
+
+                let icon = '';
+                if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+                else if (type === 'error') icon = '<i class="fas fa-times-circle"></i>';
+                else if (type === 'info') icon = '<i class="fas fa-info-circle"></i>';
+
+                toast.innerHTML = `
+                    <span class="icon">${icon}</span>
+                    <span class="message">${message}</span>
+                    <button class="close-btn">&times;</button>
+                `;
+
+                toast.querySelector('.close-btn').addEventListener('click', () => {
+                    toast.remove();
+                });
+
+                toastContainer.appendChild(toast);
+                void toast.offsetWidth;
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 500);
+                }, duration);
+            }
             
-            // Generate a unique device ID and store it in localStorage
-            const getOrCreateDeviceId = () => {
+            function showBanPopup(details) {
+                banPopupTitle.textContent = details.status === 'Suspended' ? 'Access Key Ditangguhkan' : 'Access Key Diban';
+                banPopupStatus.textContent = details.status;
+                banPopupReason.textContent = details.reason;
+                
+                if (details.suspensionUntil && details.suspensionUntil !== 'Permanen') {
+                    const date = new Date(details.suspensionUntil);
+                    banPopupUntil.textContent = date.toLocaleString();
+                } else {
+                    banPopupUntil.textContent = 'Permanen';
+                }
+
+                banPopupOverlay.classList.remove('hidden');
+                banPopupOverlay.classList.add('show');
+            }
+
+            function showActivationPopup(accessKey, deviceId) {
+                activationPopupOverlay.classList.remove('hidden');
+                activationPopupOverlay.classList.add('show');
+
+                requestActivationBtn.addEventListener('click', async () => {
+                    activationTitle.textContent = 'Aktivasi Diproses...';
+                    activationContent.innerHTML = 'Mohon tunggu admin mengotorisasi perangkat Anda.';
+                    requestActivationBtn.disabled = true;
+
+                    try {
+                        const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ accessKey, deviceId }),
+                        });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            showToast('info', 'Permintaan otorisasi berhasil dikirim!');
+                        } else {
+                            showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                            activationTitle.textContent = 'Gagal Mengirim Permintaan';
+                            activationContent.innerHTML = 'Terjadi kesalahan. Silakan coba lagi.';
+                            requestActivationBtn.disabled = false;
+                        }
+                    } catch (error) {
+                        showToast('error', 'Terjadi kesalahan jaringan.');
+                        activationTitle.textContent = 'Gagal Mengirim Permintaan';
+                        activationContent.innerHTML = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
+                        requestActivationBtn.disabled = false;
+                    }
+                });
+            }
+
+            function getDeviceId() {
+                const fingerprint = (
+                    navigator.userAgent +
+                    navigator.platform +
+                    new Date().getTimezoneOffset() +
+                    window.innerWidth +
+                    window.innerHeight
+                ).replace(/\s/g, '');
+                
                 let deviceId = localStorage.getItem('deviceId');
                 if (!deviceId) {
-                    deviceId = 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    deviceId = btoa(fingerprint).substring(0, 32); 
                     localStorage.setItem('deviceId', deviceId);
                 }
                 return deviceId;
-            };
-        
-            const deviceId = getOrCreateDeviceId();
-        
-            // Function to show toast notifications
-            const showToast = (type, message) => {
-                const toast = document.createElement('div');
-                toast.classList.add('toast-notification', type);
-                toast.innerHTML = `<span class="icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
-                toastContainer.appendChild(toast);
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
-            };
-        
-            // Populate package options
-            Object.keys(PACKAGES).forEach(key => {
-                const pkg = PACKAGES[key];
-                const radioOption = document.createElement('div');
-                radioOption.classList.add('radio-option');
-                radioOption.innerHTML = `
-                    <input type="radio" id="pkg-${key}" name="hosting-package" value="${key}">
-                    <label for="pkg-${key}">
-                        ${pkg.name}<br>
-                        <span>RAM: ${pkg.ram}MB | Disk: ${pkg.disk}MB</span>
-                    </label>
-                `;
-                packageOptions.appendChild(radioOption);
+            }
+
+            closePopupBtn.addEventListener('click', () => {
+                banPopupOverlay.classList.remove('show');
+                banPopupOverlay.classList.add('hidden');
             });
-            // Select the first package by default
-            const firstPackageInput = packageOptions.querySelector('input[type="radio"]');
-            if (firstPackageInput) {
-                firstPackageInput.checked = true;
-            }
-        
-            // Enable/disable panel type options based on config
-            if (!IS_PUBLIC_PANEL_ENABLED) {
-                document.getElementById('public-panel-option').style.display = 'none';
-            }
-            if (!IS_PRIVATE_PANEL_ENABLED) {
-                document.getElementById('private-panel-option').style.display = 'none';
-            }
-        
-            const validateAccessKey = async (accessKey) => {
+
+            loadCustomLogo(); 
+
+            createPanelForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                console.log('1. Event submit dicegah. Memulai proses...');
+
                 try {
-                    const response = await fetch(`${VALIDATE_KEY_ENDPOINT}?accessKey=${accessKey}&deviceId=${deviceId}`);
-                    const data = await response.json();
-                    return data;
-                } catch (error) {
-                    console.error('Validation error:', error);
-                    showToast('error', 'Gagal memvalidasi kunci. Coba lagi.');
-                    return { isValid: false, message: 'Server error.' };
-                }
-            };
-        
-            // Listen for changes on the access key input
-            accessKeyInput.addEventListener('blur', async () => {
-                const accessKey = accessKeyInput.value.trim();
-                if (accessKey.length > 0) {
-                    const validationResult = await validateAccessKey(accessKey);
-                    if (validationResult.isValid) {
-                        showToast('success', 'Access Key valid!');
-                        createButton.disabled = false;
-                        requestActivationButton.style.display = 'none';
-                    } else {
-                        showToast('error', validationResult.message);
-                        createButton.disabled = true;
-                        if (validationResult.message.includes('Perangkat Anda belum diotorisasi')) {
-                             requestActivationButton.style.display = 'block';
-                        } else {
-                             requestActivationButton.style.display = 'none';
-                        }
+                    console.log('2. Memastikan elemen-elemen form ditemukan...');
+                    if (!createButton || !createButtonText || !loadingSpinner) {
+                        console.error('Error: Salah satu elemen penting tidak ditemukan di HTML.');
+                        throw new Error('Elemen form tidak lengkap.');
                     }
-                } else {
+
                     createButton.disabled = true;
-                    requestActivationButton.style.display = 'none';
-                }
-            });
-            
-            // Handle activation request button click
-            requestActivationButton.addEventListener('click', async () => {
-                const accessKey = accessKeyInput.value.trim();
-                if (!accessKey) {
-                    showToast('error', 'Silakan masukkan Access Key terlebih dahulu.');
-                    return;
-                }
-                
-                requestActivationButton.disabled = true;
-                requestActivationButton.textContent = 'Meminta Aktivasi...';
-                
-                try {
-                    const response = await fetch(REQUEST_ACTIVATION_ENDPOINT, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ accessKey: accessKey, deviceId: deviceId })
+                    createButton.classList.add('loading');
+                    createButtonText.textContent = 'MEMBUAT PANEL';
+                    loadingSpinner.style.display = 'flex';
+                    console.log('3. Status loading sudah aktif.');
+
+                    hideMainMessage();
+
+                    const accessKey = document.getElementById('accessKey').value;
+                    const selectedPanelType = panelTypeSelect.value;
+                    const username = document.getElementById('username').value;
+                    const hostingPackage = document.getElementById('hostingPackage').value;
+                    const deviceId = getDeviceId();
+                    
+                    console.log('4. Memvalidasi Access Key...');
+                    const validateUrl = `${YOUR_VALIDATION_API_ENDPOINT}?accessKey=${encodeURIComponent(accessKey)}&deviceId=${encodeURIComponent(deviceId)}`;
+                    const validationResponse = await fetch(validateUrl, { method: 'GET' });
+                    const validationData = await validationResponse.json();
+                    
+                    if (!validationData.isValid) {
+                        if (validationData.details?.status === 'Unauthorized') {
+                            showActivationPopup(accessKey, deviceId);
+                        } else {
+                            showBanPopup(validationData.details);
+                        }
+                        return;
+                    }
+                    console.log('5. Access Key valid. Melanjutkan ke pembuatan panel...');
+
+                    if (!selectedPanelType) {
+                        showToast('error', 'Silakan pilih tipe panel (Public/Private)!');
+                        return;
+                    }
+
+                    if (!username || !hostingPackage) {
+                        showToast('error', 'Username dan Paket Hosting harus diisi!');
+                        return;
+                    }
+
+                    const usernameInput = document.getElementById('username');
+                    if (!usernameInput.checkValidity()) {
+                        showToast('error', `Username tidak valid: ${usernameInput.title}`);
+                        return;
+                    }
+
+                    const selectedPackage = PACKAGES[hostingPackage];
+                    if (!selectedPackage) {
+                        showToast('error', 'Pilih paket hosting yang valid.');
+                        return;
+                    }
+
+                    const { ram, disk, cpu } = selectedPackage;
+                    
+                    const requestParams = new URLSearchParams({
+                        username: username,
+                        ram: ram,
+                        disk: disk,
+                        cpu: cpu,
+                        hostingPackage: hostingPackage, 
+                        panelType: selectedPanelType, 
+                        accessKey: accessKey,
+                        deviceId: deviceId,
+                    }).toString();
+
+                    const finalRequestUrl = `${YOUR_CREATE_PANEL_API_ENDPOINT}?${requestParams}`;
+
+                    console.log('6. Mengirim permintaan pembuatan panel ke API...');
+                    const response = await fetch(finalRequestUrl, {
+                        method: 'GET',
                     });
                     
+                    if (!response.ok) {
+                      const errorText = await response.text();
+                      console.error('API Server Error:', errorText);
+                      throw new Error(`Server returned status ${response.status}: ${errorText}`);
+                    }
+
                     const data = await response.json();
                     
-                    if (data.success) {
-                        showToast('info', 'Permintaan aktivasi terkirim. Mohon tunggu persetujuan admin.');
+                    console.log('7. Respons dari API diterima:', data);
+
+                    if (data.status) {
+                        const result = data.result;
+                        const panelDomainUrl = result.domain; 
+
+                        const fullTextToCopy = `
+==============================
+   DETAIL AKUN PANEL ANDA   
+==============================
+Username: ${result.username}
+Password: ${result.password}
+Paket: ${selectedPackage.name}
+Tipe Panel: ${selectedPanelType.toUpperCase()}
+ID User: ${result.id_user}
+Server ID: ${result.id_server}
+Domain: ${panelDomainUrl}
+==============================
+`.trim();
+
+                        const successMessageHTML = `
+                            <div class="result-title">Panel Berhasil Dibuat!</div>
+                            <div class="result-row"><span>Username:</span> <span id="copyUsernameValue">${result.username}</span></div>
+                            <div class="result-row"><span>Password:</span> <span id="copyPasswordValue">${result.password}</span></div>
+                            <div class="result-row"><span>Paket:</span> <span>${selectedPackage.name}</span></div>
+                            <div class="result-row"><span>Tipe Panel:</span> <span>${selectedPanelType.toUpperCase()}</span></div>
+                            <div class="result-row"><span>ID User:</span> <span>${result.id_user}</span></div>
+                            <div class="result-row"><span>Server ID:</span> <span>${result.id_server}</span></div>
+                            <div class="result-row"><span>Domain:</span> <span id="copyDomainValue"><a href="${panelDomainUrl}" target="_blank">${result.domain}</a></span></div>
+                            
+                            <div class="result-actions">
+                                <button class="copy-button" data-copy-target="copyUsernameValue">Copy Username</button>
+                                <button class="copy-button" data-copy-target="copyPasswordValue">Copy Password</button>
+                                <button class="copy-button" data-copy-target="copyDomainValue">Copy Domain</button>
+                                <button class="login-panel-button" onclick="window.open('${panelDomainUrl}', '_blank')">Login Panel</button>
+                                <button class="copy-all-button" data-copy-value="${fullTextToCopy}">Copy All Details</button>
+                            </div>
+                            <p class="contact-message">
+                                Jika tidak bisa login, silakan hubungi <a href="#">Admin</a>
+                            </p>
+                        `;
+                        showMainMessage('success', successMessageHTML); 
+                        createPanelForm.reset(); 
+                        showToast('success', 'Panel berhasil dibuat!'); 
+                        console.log('8. Proses berhasil. Pesan sukses ditampilkan.');
+
                     } else {
-                        showToast('error', data.message || 'Gagal mengirim permintaan.');
+                        const errorMessage = data.message || 'Terjadi kesalahan saat membuat panel.';
+                        showMainMessage('error', `<b>Gagal membuat server!</b><br>Pesan: ${errorMessage}`); 
+                        showToast('error', 'Gagal membuat panel!'); 
+                        console.log('9. Proses gagal. Pesan error ditampilkan.');
                     }
                 } catch (error) {
-                    console.error('Activation request failed:', error);
-                    showToast('error', 'Gagal terhubung ke server. Coba lagi.');
-                } finally {
-                    requestActivationButton.disabled = false;
-                    requestActivationButton.textContent = 'Minta Aktivasi';
-                }
-            });
-        
-            // Handle form submission
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-        
-                createButton.disabled = true;
-                createButton.textContent = 'Membuat Panel...';
-                
-                const username = usernameInput.value;
-                const accessKey = accessKeyInput.value;
-                const selectedPackageInput = form.querySelector('input[name="hosting-package"]:checked');
-                const selectedPanelTypeInput = form.querySelector('input[name="panel-type"]:checked');
-        
-                if (!selectedPackageInput || !selectedPanelTypeInput) {
-                    showToast('error', 'Pilih paket dan tipe panel!');
-                    createButton.disabled = false;
-                    createButton.textContent = 'Buat Panel';
-                    return;
-                }
-        
-                const hostingPackage = selectedPackageInput.value;
-                const panelType = selectedPanelTypeInput.value;
-                const packageDetails = PACKAGES[hostingPackage];
-        
-                const queryParams = new URLSearchParams({
-                    username: username,
-                    ram: packageDetails.ram,
-                    disk: packageDetails.disk,
-                    cpu: packageDetails.cpu,
-                    hostingPackage: hostingPackage,
-                    panelType: panelType,
-                    accessKey: accessKey,
-                    deviceId: deviceId
-                });
-        
-                try {
-                    const response = await fetch(`${YOUR_VERCEL_API_ENDPOINT}?${queryParams.toString()}`);
-                    const result = await response.json();
-        
-                    if (response.ok && result.status) {
-                        showToast('success', 'Panel berhasil dibuat!');
-                        document.getElementById('display-username').textContent = result.result.username;
-                        document.getElementById('display-password').textContent = result.result.password;
-                        document.getElementById('display-domain').textContent = result.result.domain;
-                        
-                        // Set data-copy-value attributes for copy functionality
-                        document.querySelector('[data-copy-target="copyUsernameValue"]').dataset.copyValue = result.result.username;
-                        document.querySelector('[data-copy-target="copyPasswordValue"]').dataset.copyValue = result.result.password;
-                        document.querySelector('[data-copy-target="copyDomainValue"]').dataset.copyValue = result.result.domain;
-                        
-                        const allDetailsText = `Username: ${result.result.username}\nPassword: ${result.result.password}\nDomain: ${result.result.domain}`;
-                        document.querySelector('.copy-all-button').dataset.copyValue = allDetailsText;
-        
-                        resultContainer.style.display = 'block';
-                    } else {
-                        showToast('error', result.message || 'Gagal membuat panel. Periksa kembali input Anda.');
-                        console.error('API Error:', result.message);
-                    }
-                } catch (error) {
-                    showToast('error', 'Terjadi kesalahan jaringan.');
-                    console.error('Network Error:', error);
+                    console.error('Fatal Error:', error);
+                    showMainMessage('error', `Terjadi kesalahan jaringan atau server tidak merespons: ${error.message}.`); 
+                    showToast('error', 'Kesalahan koneksi Serverless API!'); 
                 } finally {
                     createButton.disabled = false;
-                    createButton.textContent = 'Buat Panel';
+                    createButton.classList.remove('loading');
+                    createButtonText.textContent = 'CREATE PANEL';
+                    loadingSpinner.style.display = 'none';
+                    console.log('10. Proses selesai. Loading dimatikan.');
                 }
             });
-        
-            // Handle copy buttons
-            document.body.addEventListener('click', async (event) => {
+
+            responseMessageDiv.addEventListener('click', async (event) => {
                 if (event.target.classList.contains('copy-button')) {
-                    const textToCopy = event.target.dataset.copyValue;
+                    const targetId = event.target.dataset.copyTarget;
+                    const textToCopy = document.getElementById(targetId).textContent;
+                    
                     if (textToCopy) {
                         try {
                             await navigator.clipboard.writeText(textToCopy);
-                            showToast('info', `Disalin: ${textToCopy.substring(0, Math.min(25, textToCopy.length))}...`);
-                            event.target.textContent = 'Disalin!';
+                            showToast('info', `Disalin: ${textToCopy.substring(0, Math.min(25, textToCopy.length))}...`); 
+                            event.target.textContent = 'Copied!';
                             setTimeout(() => {
-                                event.target.textContent = 'Salin';
+                                if (targetId === 'copyUsernameValue') event.target.textContent = 'Copy Username';
+                                else if (targetId === 'copyPasswordValue') event.target.textContent = 'Copy Password';
+                                else if (targetId === 'copyDomainValue') event.target.textContent = 'Copy Domain';
                             }, 1500);
                         } catch (err) {
                             console.error('Failed to copy text:', err);
                             showToast('error', 'Gagal menyalin!');
                         }
                     }
-                } else if (event.target.classList.contains('copy-all-button')) {
+                } else if (event.target.classList.contains('copy-all-button')) { 
                     const textToCopy = event.target.dataset.copyValue;
                      if (textToCopy) {
                         try {
                             await navigator.clipboard.writeText(textToCopy);
-                            showToast('info', 'Semua detail berhasil disalin!');
-                            event.target.textContent = 'Semua Disalin!';
+                            showToast('info', 'Semua detail berhasil disalin!'); 
+                            event.target.textContent = 'All Copied!';
                             setTimeout(() => {
-                                event.target.textContent = 'Salin Semua Detail';
+                                event.target.textContent = 'Copy All Details';
                             }, 1500);
                         } catch (err) {
                             console.error('Failed to copy all text:', err);
@@ -645,7 +466,6 @@
                     }
                 }
             });
-        
         });
     </script>
 </body>
