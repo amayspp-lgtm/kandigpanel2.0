@@ -58,29 +58,27 @@ export default async function handler(req, res) {
       return res.status(403).json({ status: false, message: 'Invalid Access Key.' });
     }
     
-    // Periksa status kunci
     if (foundKey.status !== 'active') {
       return res.status(403).json({ status: false, message: `Access Key ini berstatus '${foundKey.status}'.` });
     }
 
-    // Periksa otorisasi perangkat
-    const isDeviceAuthorized = foundKey.usedDevices.includes(deviceId);
+    // Perbaikan: Gunakan `|| []` untuk memastikan array selalu ada
+    const isDeviceAuthorized = (foundKey.usedDevices || []).includes(deviceId);
     if (!isDeviceAuthorized) {
         return res.status(403).json({ status: false, message: 'Perangkat ini belum diotorisasi.' });
     }
 
-    // Periksa batasan panel
     const restriction = foundKey.panelTypeRestriction || 'both';
     const requestedPanelTypeLower = panelType.toLowerCase();
     if ((restriction === 'public' && requestedPanelTypeLower === 'private') || (restriction === 'private' && requestedPanelTypeLower === 'public')) {
       return res.status(403).json({ status: false, message: `Access Key ini hanya diizinkan untuk membuat panel ${restriction}.` });
     }
 
-    // Periksa batas harian dan update counter
     const today = new Date().toISOString().split('T')[0];
     const lastUsed = foundKey.lastUsedDate ? new Date(foundKey.lastUsedDate).toISOString().split('T')[0] : null;
 
     if (lastUsed !== today) {
+      await collection.updateOne({ key: accessKey }, { $set: { dailyUsage: 0, lastUsedDate: new Date() } });
       foundKey.dailyUsage = 0;
     }
 
@@ -88,7 +86,6 @@ export default async function handler(req, res) {
       return res.status(403).json({ status: false, message: `Batas penggunaan harian (${foundKey.dailyLimit}) Access Key ini telah tercapai.` });
     }
     
-    // Update usageCount dan dailyUsage
     await collection.updateOne(
       { key: accessKey },
       { $inc: { usageCount: 1, dailyUsage: 1 }, $set: { lastUsedDate: new Date() } }
@@ -128,9 +125,16 @@ export default async function handler(req, res) {
 
   try {
     const apiResponse = await fetch(finalPteroApiUrl);
+
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error('Pterodactyl API responded with an error:', apiResponse.status, errorText);
+        return res.status(apiResponse.status).json({ status: false, message: `Pterodactyl API error: ${errorText}` });
+    }
+
     const apiData = await apiResponse.json();
 
-    if (apiResponse.ok && apiData.status) {
+    if (apiData.status) {
       const accessKeyUsed = escapeHTML(accessKey || 'Tidak Diketahui'); 
       const escapedUsername = escapeHTML(apiData.result.username);
       const escapedPassword = escapeHTML(apiData.result.password);
@@ -157,7 +161,7 @@ Server ID: ${apiData.result.id_server}
       });
       res.status(200).json(apiData);
     } else {
-      res.status(apiResponse.status || 500).json(apiData || { status: false, message: 'Failed to create server via external API.' });
+      res.status(500).json(apiData || { status: false, message: 'Failed to create server via external API.' });
     }
   } catch (error) {
     console.error('Error in Vercel Serverless Function:', error);

@@ -22,9 +22,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ isValid: false, message: 'Access Key tidak valid atau tidak ditemukan.' });
     }
 
-    // Periksa otorisasi perangkat
-    const isDeviceAuthorized = foundKey.usedDevices.includes(deviceId);
-    const isDevicePending = foundKey.pendingDevices.some(d => d.deviceId === deviceId);
+    // Perbaikan: Gunakan `|| []` untuk memastikan array selalu ada
+    const isDeviceAuthorized = (foundKey.usedDevices || []).includes(deviceId);
+    const isDevicePending = (foundKey.pendingDevices || []).some(d => d.deviceId === deviceId);
 
     if (!isDeviceAuthorized && !isDevicePending) {
       return res.status(403).json({
