@@ -21,10 +21,22 @@ export default async function handler(req, res) {
     if (!foundKey) {
       return res.status(401).json({ isValid: false, message: 'Access Key tidak valid atau tidak ditemukan.' });
     }
+    
+    const usedDevices = foundKey.usedDevices || [];
+    const pendingDevices = foundKey.pendingDevices || [];
+    
+    // Logika baru untuk satu perangkat per kunci
+    if (usedDevices.length >= 1 && !usedDevices.includes(deviceId)) {
+        return res.status(403).json({
+            isValid: false,
+            message: 'Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin.',
+            details: { status: 'DeviceAlreadyRegistered' }
+        });
+    }
 
-    // Perbaikan: Gunakan `|| []` untuk memastikan array selalu ada
-    const isDeviceAuthorized = (foundKey.usedDevices || []).includes(deviceId);
-    const isDevicePending = (foundKey.pendingDevices || []).some(d => d.deviceId === deviceId);
+    // Periksa otorisasi perangkat
+    const isDeviceAuthorized = usedDevices.includes(deviceId);
+    const isDevicePending = pendingDevices.some(d => d.deviceId === deviceId);
 
     if (!isDeviceAuthorized && !isDevicePending) {
       return res.status(403).json({
@@ -38,7 +50,6 @@ export default async function handler(req, res) {
     if (foundKey.status === 'suspended') {
       const suspensionUntil = foundKey.suspensionUntil ? new Date(foundKey.suspensionUntil) : null;
       if (suspensionUntil && new Date() > suspensionUntil) {
-        // Suspensi berakhir, aktifkan kembali
         await collection.updateOne({ _id: foundKey._id }, { $set: { status: 'active', reason: null, suspensionUntil: null } });
         return res.status(200).json({ isValid: true, message: 'Access Key valid.' });
       } else {
@@ -66,18 +77,15 @@ export default async function handler(req, res) {
         });
     }
 
-    // Jika statusnya 'active', lanjutkan validasi
     if (foundKey.status === 'active') {
       const today = new Date().toISOString().split('T')[0];
       const lastUsed = foundKey.lastUsedDate ? new Date(foundKey.lastUsedDate).toISOString().split('T')[0] : null;
 
-      // Reset hitungan harian jika tanggal berbeda
       if (lastUsed !== today) {
         await collection.updateOne({ _id: foundKey._id }, { $set: { dailyUsage: 0, lastUsedDate: new Date() } });
-        foundKey.dailyUsage = 0; // Perbarui objek untuk validasi selanjutnya
+        foundKey.dailyUsage = 0;
       }
 
-      // Periksa batas harian
       if (foundKey.dailyLimit > 0 && foundKey.dailyUsage >= foundKey.dailyLimit) {
         return res.status(403).json({
           isValid: false,
