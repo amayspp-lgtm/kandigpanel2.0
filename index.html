@@ -761,6 +761,19 @@
                     console.log('4. Memvalidasi Access Key...');
                     const validateUrl = `${YOUR_VALIDATION_API_ENDPOINT}?accessKey=${encodeURIComponent(accessKey)}&deviceId=${encodeURIComponent(deviceId)}`;
                     const validationResponse = await fetch(validateUrl, { method: 'GET' });
+                    
+                    if (!validationResponse.ok) {
+                        const errorData = await validationResponse.json();
+                        if (errorData.details?.status === 'Unauthorized') {
+                            showActivationPopup(accessKey, deviceId);
+                        } else if (errorData.details) {
+                            showBanPopup(errorData.details);
+                        } else {
+                            showToast('error', errorData.message || 'Error validasi tidak diketahui.');
+                        }
+                        return;
+                    }
+
                     const validationData = await validationResponse.json();
                     
                     if (!validationData.isValid) {
@@ -771,6 +784,7 @@
                         }
                         return;
                     }
+
                     console.log('5. Access Key valid. Melanjutkan ke pembuatan panel...');
 
                     if (!selectedPanelType) {
@@ -814,7 +828,7 @@
                     const response = await fetch(finalRequestUrl, {
                         method: 'GET',
                     });
-
+                    
                     if (!response.ok) {
                       const errorText = await response.text();
                       console.error('API Server Error:', errorText);
