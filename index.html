@@ -235,7 +235,6 @@
                         
                         if (data.success) {
                             showToast('info', 'Permintaan otorisasi berhasil dikirim!');
-                            // Tambahkan polling atau refresh untuk memeriksa status
                         } else {
                             showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
                             activationTitle.textContent = 'Gagal Mengirim Permintaan';
@@ -306,7 +305,7 @@
                     const validationData = await validationResponse.json();
                     
                     if (!validationData.isValid) {
-                        if (validationData.details.status === 'Unauthorized') {
+                        if (validationData.details?.status === 'Unauthorized') {
                             showActivationPopup(accessKey, deviceId);
                         } else {
                             showBanPopup(validationData.details);
@@ -358,10 +357,10 @@
                     });
 
                     // Perbaikan: Tambahkan penanganan jika respons bukan JSON
-                    if (!response.headers.get('content-type')?.includes('application/json')) {
-                        const text = await response.text();
-                        console.error('API Response is not JSON:', text);
-                        throw new Error('API server returned non-JSON response');
+                    if (!response.ok) {
+                      const errorText = await response.text();
+                      console.error('API Server Error:', errorText);
+                      throw new Error(`Server returned status ${response.status}: ${errorText}`);
                     }
 
                     const data = await response.json();
