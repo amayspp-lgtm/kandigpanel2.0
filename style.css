@@ -457,3 +457,69 @@ select.form-input {
 #close-popup-btn:hover {
     background-color: #d1463e;
 }
+
+#activation-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#activation-popup-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.activation-popup {
+    background-color: var(--container-bg);
+    padding: 30px 40px;
+    border-radius: 15px;
+    border: 2px solid var(--primary-accent);
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    margin-top: 50px;
+    transform: translateY(-20px) scale(0.9);
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+#activation-popup-overlay.show .activation-popup {
+    transform: translateY(0) scale(1);
+}
+
+.activation-popup h2 {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--primary-accent);
+    font-weight: 700;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+.activation-popup .activation-content p {
+    font-size: 1em;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+#request-activation-btn {
+    margin-top: 25px;
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-accent);
+    color: white;
+}
+
+#request-activation-btn:hover {
+    background-color: #0056b3;
+}

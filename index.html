@@ -114,7 +114,7 @@
             const YOUR_VALIDATION_API_ENDPOINT = '/api/validate-access-key'; 
             const YOUR_CREATE_PANEL_API_ENDPOINT = '/api/create-panel';
             const YOUR_REQUEST_ACTIVATION_API_ENDPOINT = '/api/request-activation';
-
+            
             const PACKAGES = {
                 "1gb": { ram: 1024, disk: 1024, cpu: 100, name: "1 GB" },
                 "2gb": { ram: 2048, disk: 2048, cpu: 100, name: "2 GB" },
@@ -347,7 +347,7 @@
                         hostingPackage: hostingPackage, 
                         panelType: selectedPanelType, 
                         accessKey: accessKey,
-                        deviceId: deviceId, // Kirim deviceId untuk validasi akhir di server
+                        deviceId: deviceId,
                     }).toString();
 
                     const finalRequestUrl = `${YOUR_CREATE_PANEL_API_ENDPOINT}?${requestParams}`;
@@ -356,6 +356,13 @@
                     const response = await fetch(finalRequestUrl, {
                         method: 'GET',
                     });
+
+                    // Perbaikan: Tambahkan penanganan jika respons bukan JSON
+                    if (!response.headers.get('content-type')?.includes('application/json')) {
+                        const text = await response.text();
+                        console.error('API Response is not JSON:', text);
+                        throw new Error('API server returned non-JSON response');
+                    }
 
                     const data = await response.json();
                     
