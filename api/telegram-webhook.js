@@ -76,10 +76,22 @@ export default async function handler(req, res) {
           responseMessage = `⚠️ **Gagal Menolak.**\n\nID Perangkat \`${escapedDeviceId}\` tidak ditemukan pada kunci \`${escapedKey}\`.`;
         }
       } else if (action === 'start') {
-         // Handle start button click
         const startMessage = `
 Selamat datang, Admin! 👋
-Anda dapat mengelola Access Key dengan perintah di bawah ini.
+Berikut adalah daftar perintah yang bisa Anda gunakan:
+
+\`\`\`
+/start - Menampilkan menu utama
+/addkey [key] [type] [limit] - Menambahkan kunci baru
+/listkeys - Menampilkan semua kunci
+/removekey [key] - Menghapus kunci
+/suspendkey [key] [durasi] [alasan] - Menangguhkan kunci
+/bankey [key] [alasan] - Memblokir kunci
+/unbankey [key] - Mengaktifkan kembali kunci
+/setdailylimit [key] [limit] - Mengubah batas harian
+/authorize_device [key] [deviceId] - Otorisasi perangkat
+/unauthorize_device [key] [deviceId] - Menghapus otorisasi perangkat
+\`\`\`
         `;
         const inlineKeyboard = {
             inline_keyboard: [
@@ -90,6 +102,44 @@ Anda dapat mengelola Access Key dengan perintah di bawah ini.
         };
         await sendTelegramMessage(chatId, startMessage, { reply_markup: inlineKeyboard, parse_mode: 'Markdown' });
         return res.status(200).json({ success: true, message: 'Start menu sent.' });
+      } else if (callbackData === '/addkey') {
+         responseMessage = 'Gunakan perintah `/addkey [key] [type] [limit]`\n\nType: `public` atau `private`.\nLimit: Batas harian.';
+      } else if (callbackData === '/listkeys') {
+         try {
+             const listResult = await fetch(`${process.env.VERCEL_BASE_URL}/api/manage-access-keys?requestedByTelegramId=${fromId}`);
+             const listData = await listResult.json();
+             if (listData.success && listData.keys && listData.keys.length > 0) {
+                 const keys = listData.keys;
+                 const formattedKeys = keys.map(key => {
+                     const usedDevicesCount = key.usedDevices ? key.usedDevices.length : 0;
+                     const pendingDevicesCount = key.pendingDevices ? key.pendingDevices.length : 0;
+                     const dailyLimitText = key.dailyLimit > 0 ? `${key.dailyUsage}/${key.dailyLimit}` : 'Tidak terbatas';
+                     
+                     return `
+\`\`\`
+🔑 Kunci: ${key.key}
+Status: ${key.status === 'active' ? '🟢 Aktif' : key.status === 'suspended' ? '🟡 Ditangguhkan' : '🔴 Diblokir'}
+Dibuat: ${new Date(key.createdAt).toLocaleString()}
+Digunakan: ${key.usageCount}
+Batas Harian: ${dailyLimitText}
+Tipe: ${key.panelTypeRestriction}
+Perangkat: ${usedDevicesCount} terotorisasi, ${pendingDevicesCount} menunggu
+${key.status !== 'active' ? `Alasan: ${escapeHTML(key.reason)}` : ''}
+\`\`\`
+                     `.trim();
+                 }).join('\n\n');
+                 
+                 responseMessage = `--- Daftar Access Key ---\n${formattedKeys}`;
+             } else {
+                 responseMessage = 'Tidak ada Access Key yang terdaftar.';
+             }
+         } catch (error) {
+             responseMessage = `Terjadi kesalahan internal: ${escapeHTML(error.message)}`;
+         }
+      } else if (callbackData === '/removekey') {
+         responseMessage = 'Gunakan perintah `/removekey [key]`';
+      } else if (callbackData === '/settings') {
+         responseMessage = 'Gunakan perintah pengaturan di bawah ini:\n\n/suspendkey [key] [durasi] [alasan]\n/bankey [key] [alasan]\n/unbankey [key]\n/setdailylimit [key] [limit]\n/unauthorize_device [key] [deviceId]';
       }
       
       await editTelegramMessage(chatId, messageId, responseMessage);
@@ -116,7 +166,20 @@ Anda dapat mengelola Access Key dengan perintah di bawah ini.
     case '/start':
         const startMessage = `
 Selamat datang, Admin! 👋
-Anda dapat mengelola Access Key dengan perintah di bawah ini.
+Berikut adalah daftar perintah yang bisa Anda gunakan:
+
+\`\`\`
+/start - Menampilkan menu utama
+/addkey [key] [type] [limit] - Menambahkan kunci baru
+/listkeys - Menampilkan semua kunci
+/removekey [key] - Menghapus kunci
+/suspendkey [key] [durasi] [alasan] - Menangguhkan kunci
+/bankey [key] [alasan] - Memblokir kunci
+/unbankey [key] - Mengaktifkan kembali kunci
+/setdailylimit [key] [limit] - Mengubah batas harian
+/authorize_device [key] [deviceId] - Otorisasi perangkat
+/unauthorize_device [key] [deviceId] - Menghapus otorisasi perangkat
+\`\`\`
         `;
         const inlineKeyboard = {
             inline_keyboard: [
@@ -162,7 +225,8 @@ Anda dapat mengelola Access Key dengan perintah di bawah ini.
                   const dailyLimitText = key.dailyLimit > 0 ? `${key.dailyUsage}/${key.dailyLimit}` : 'Tidak terbatas';
                   
                   return `
-🔑 Kunci: \`${escapeHTML(key.key)}\`
+\`\`\`
+🔑 Kunci: ${key.key}
 Status: ${key.status === 'active' ? '🟢 Aktif' : key.status === 'suspended' ? '🟡 Ditangguhkan' : '🔴 Diblokir'}
 Dibuat: ${new Date(key.createdAt).toLocaleString()}
 Digunakan: ${key.usageCount}
@@ -170,10 +234,11 @@ Batas Harian: ${dailyLimitText}
 Tipe: ${key.panelTypeRestriction}
 Perangkat: ${usedDevicesCount} terotorisasi, ${pendingDevicesCount} menunggu
 ${key.status !== 'active' ? `Alasan: ${escapeHTML(key.reason)}` : ''}
+\`\`\`
                   `.trim();
               }).join('\n\n');
               
-              responseMessage = `--- Daftar Access Key ---\n<pre>${formattedKeys}</pre>`;
+              responseMessage = `--- Daftar Access Key ---\n${formattedKeys}`;
           } else {
               responseMessage = 'Tidak ada Access Key yang terdaftar.';
           }
@@ -202,7 +267,7 @@ ${key.status !== 'active' ? `Alasan: ${escapeHTML(key.reason)}` : ''}
     
     case '/suspendkey':
       if (args.length < 2) {
-        responseMessage = 'Format salah. Gunakan: `/suspendkey [key] [durasi] [alasan]`';
+        responseMessage = 'Format salah. Gunakan: `/suspendkey [key] [durasi] [alasan]`\n\nContoh: `/suspendkey mykey 3d Akun spamming`';
         break;
       }
       const suspendKey = args[0];
@@ -223,7 +288,7 @@ ${key.status !== 'active' ? `Alasan: ${escapeHTML(key.reason)}` : ''}
 
     case '/bankey':
       if (args.length < 2) {
-        responseMessage = 'Format salah. Gunakan: `/bankey [key] [alasan]`';
+        responseMessage = 'Format salah. Gunakan: `/bankey [key] [alasan]`\n\nContoh: `/bankey mykey Melanggar TOS`';
         break;
       }
       const banKey = args[0];
@@ -291,6 +356,31 @@ ${key.status !== 'active' ? `Alasan: ${escapeHTML(key.reason)}` : ''}
                 }
             );
             responseMessage = authResult.modifiedCount > 0 ? `✅ ID Perangkat \`${escapeHTML(authDeviceId)}\` berhasil diotorisasi untuk kunci \`${escapeHTML(authKey)}\`.` : '❌ Otorisasi gagal. Perangkat mungkin sudah diotorisasi atau tidak ditemukan dalam antrean.';
+        } catch (error) {
+            responseMessage = `Terjadi kesalahan internal: ${escapeHTML(error.message)}`;
+        }
+        break;
+
+    case '/unauthorize_device':
+        if (args.length < 2) {
+            responseMessage = 'Format salah. Gunakan: `/unauthorize_device [key] [deviceId]`';
+            break;
+        }
+        const unauthKey = args[0];
+        const unauthDeviceId = args[1];
+        try {
+            const unauthResult = await fetch(`${process.env.VERCEL_BASE_URL}/api/manage-access-keys`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    key: unauthKey,
+                    deviceId: unauthDeviceId,
+                    action: 'unauthorize_device',
+                    updatedByTelegramId: String(fromId)
+                }),
+            });
+            const unauthData = await unauthResult.json();
+            responseMessage = unauthData.success ? `✅ ID Perangkat \`${escapeHTML(unauthDeviceId)}\` berhasil di-unotorisasi untuk kunci \`${escapeHTML(unauthKey)}\`.` : `❌ Gagal: ${escapeHTML(unauthData.message)}`;
         } catch (error) {
             responseMessage = `Terjadi kesalahan internal: ${escapeHTML(error.message)}`;
         }

@@ -55,42 +55,54 @@ export default async function handler(req, res) {
       const keys = await collection.find({}).project({ _id: 0 }).toArray();
       return res.status(200).json({ success: true, keys: keys });
     } else if (req.method === 'PATCH') {
-      const { key, status, reason, duration, updatedByTelegramId } = req.body;
+      const { key, status, reason, duration, deviceId, action, updatedByTelegramId } = req.body;
       if (!authorizeOwner(updatedByTelegramId)) {
         return res.status(403).json({ success: false, message: 'Unauthorized.' });
       }
-      if (!key || !status) {
-        return res.status(400).json({ success: false, message: 'Access Key and new status are required.' });
+      if (!key) {
+        return res.status(400).json({ success: false, message: 'Access Key is required.' });
       }
 
-      const validStatuses = ['active', 'suspended', 'banned'];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({ success: false, message: 'Invalid status provided.' });
+      const updatePayload = {};
+
+      if (action === 'unauthorize_device') {
+        if (!deviceId) {
+          return res.status(400).json({ success: false, message: 'Device ID is required for this action.' });
+        }
+        updatePayload.$pull = { usedDevices: deviceId };
+      } else {
+        if (!status) {
+          return res.status(400).json({ success: false, message: 'Status is required for this action.' });
+        }
+        const validStatuses = ['active', 'suspended', 'banned'];
+        if (!validStatuses.includes(status)) {
+          return res.status(400).json({ success: false, message: 'Invalid status provided.' });
+        }
+
+        let suspensionUntil = null;
+        if (status === 'suspended' && duration) {
+          const value = parseInt(duration.slice(0, -1));
+          const unit = duration.slice(-1);
+          const now = new Date();
+
+          if (unit === 'd') now.setDate(now.getDate() + value);
+          else if (unit === 'm') now.setMinutes(now.getMinutes() + value);
+          else if (unit === 'h') now.setHours(now.getHours() + value);
+          suspensionUntil = now;
+        }
+
+        updatePayload.$set = {
+          status: status,
+          updatedAt: new Date(),
+          reason: reason || null,
+          suspensionUntil: suspensionUntil
+        };
       }
-
-      let suspensionUntil = null;
-      if (status === 'suspended' && duration) {
-        const value = parseInt(duration.slice(0, -1));
-        const unit = duration.slice(-1);
-        const now = new Date();
-
-        if (unit === 'd') now.setDate(now.getDate() + value);
-        else if (unit === 'm') now.setMinutes(now.getMinutes() + value);
-        else if (unit === 'h') now.setHours(now.getHours() + value);
-        suspensionUntil = now;
-      }
-
-      const updateFields = {
-        status: status,
-        updatedAt: new Date(),
-        reason: reason || null,
-        suspensionUntil: suspensionUntil
-      };
       
-      const result = await collection.updateOne({ key: key }, { $set: updateFields });
+      const result = await collection.updateOne({ key: key }, updatePayload);
 
       if (result.matchedCount === 1) {
-        return res.status(200).json({ success: true, message: `Access Key status updated to '${status}' successfully.` });
+        return res.status(200).json({ success: true, message: `Access Key updated successfully.` });
       } else {
         return res.status(404).json({ success: false, message: 'Access Key not found.' });
       }
