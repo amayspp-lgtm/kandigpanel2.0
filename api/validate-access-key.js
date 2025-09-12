@@ -6,10 +6,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ isValid: false, message: 'Method Not Allowed.' });
   }
 
-  const { accessKey } = req.query;
+  const { accessKey, deviceId } = req.query;
 
-  if (!accessKey) {
-    return res.status(400).json({ isValid: false, message: 'Access Key is required.' });
+  if (!accessKey || !deviceId) {
+    return res.status(400).json({ isValid: false, message: 'Access Key and Device ID are required.' });
   }
 
   try {
@@ -22,25 +22,38 @@ export default async function handler(req, res) {
       return res.status(401).json({ isValid: false, message: 'Access Key tidak valid atau tidak ditemukan.' });
     }
 
-    // Periksa jika suspension temporary sudah berakhir
-    if (foundKey.status === 'suspended' && foundKey.suspensionUntil && new Date() > new Date(foundKey.suspensionUntil)) {
+    // Periksa otorisasi perangkat
+    const isDeviceAuthorized = foundKey.usedDevices.includes(deviceId);
+    const isDevicePending = foundKey.pendingDevices.some(d => d.deviceId === deviceId);
+
+    if (!isDeviceAuthorized && !isDevicePending) {
+      return res.status(403).json({
+        isValid: false,
+        message: 'Perangkat Anda belum diotorisasi untuk menggunakan kunci ini.',
+        details: { status: 'Unauthorized', accessKey: accessKey, deviceId: deviceId }
+      });
+    }
+
+    // Periksa status kunci (banned/suspended)
+    if (foundKey.status === 'suspended') {
+      const suspensionUntil = foundKey.suspensionUntil ? new Date(foundKey.suspensionUntil) : null;
+      if (suspensionUntil && new Date() > suspensionUntil) {
+        // Suspensi berakhir, aktifkan kembali
         await collection.updateOne({ _id: foundKey._id }, { $set: { status: 'active', reason: null, suspensionUntil: null } });
         return res.status(200).json({ isValid: true, message: 'Access Key valid.' });
-    }
-
-    // Periksa status kunci
-    if (foundKey.status === 'suspended') {
+      } else {
         return res.status(403).json({
-            isValid: false,
-            message: 'Access Key ini telah disuspend.',
-            details: {
-                status: 'Suspended',
-                reason: foundKey.reason || 'Tidak ada alasan yang diberikan.',
-                suspensionUntil: foundKey.suspensionUntil || 'Permanen'
-            }
+          isValid: false,
+          message: 'Access Key ini telah ditangguhkan.',
+          details: {
+            status: 'Suspended',
+            reason: foundKey.reason || 'Tidak ada alasan yang diberikan.',
+            suspensionUntil: suspensionUntil?.toISOString() || 'Permanen'
+          }
         });
+      }
     }
-
+    
     if (foundKey.status === 'banned') {
         return res.status(403).json({
             isValid: false,
@@ -53,13 +66,27 @@ export default async function handler(req, res) {
         });
     }
 
-    // Jika statusnya 'active', lanjutkan proses
+    // Jika statusnya 'active', lanjutkan validasi
     if (foundKey.status === 'active') {
-        await collection.updateOne(
-            { _id: foundKey._id },
-            { $inc: { usageCount: 1 }, $set: { lastUsed: new Date() } }
-        );
-        return res.status(200).json({ isValid: true, message: 'Access Key valid.' });
+      const today = new Date().toISOString().split('T')[0];
+      const lastUsed = foundKey.lastUsedDate ? new Date(foundKey.lastUsedDate).toISOString().split('T')[0] : null;
+
+      // Reset hitungan harian jika tanggal berbeda
+      if (lastUsed !== today) {
+        await collection.updateOne({ _id: foundKey._id }, { $set: { dailyUsage: 0, lastUsedDate: new Date() } });
+        foundKey.dailyUsage = 0; // Perbarui objek untuk validasi selanjutnya
+      }
+
+      // Periksa batas harian
+      if (foundKey.dailyLimit > 0 && foundKey.dailyUsage >= foundKey.dailyLimit) {
+        return res.status(403).json({
+          isValid: false,
+          message: `Maaf, batas penggunaan harian (${foundKey.dailyLimit}) untuk Access Key ini telah tercapai.`,
+          details: { status: 'Daily Limit Reached' }
+        });
+      }
+      
+      return res.status(200).json({ isValid: true, message: 'Access Key valid.' });
     } else {
         return res.status(403).json({ isValid: false, message: 'Access Key tidak dapat digunakan.' });
     }

@@ -1,10 +1,10 @@
 // api/create-panel.js
 
 import fetch from 'node-fetch'; 
-import { connectToDatabase } from '../utils/db.js'; // Pastikan ada .js
+import { connectToDatabase } from '../utils/db.js';
 
-// Fungsi Helper untuk Escape HTML
 function escapeHTML(str) {
+  if (!str) return '';
   return str.replace(/[&<>"']/g, function(tag) {
     var charsToReplace = {
       '&': '&amp;',
@@ -32,77 +32,83 @@ const PRIVATE_PANEL_NEST_ID = process.env.VITE_PRIVATE_PANEL_NEST_ID;
 const PRIVATE_PANEL_LOC = process.env.VITE_PRIVATE_PANEL_LOC;
 
 const BASE_URL_PTERODACTYL_API_TEMPLATE = process.env.VITE_BASE_URL_PTERODACTYL_API;
-
 const VERCEL_BASE_URL = process.env.VERCEL_BASE_URL; 
-if (!VERCEL_BASE_URL || !VERCEL_BASE_URL.startsWith('http')) {
-    console.error("VERCEL_BASE_URL environment variable is missing or invalid in create-panel.js. Please set it in Vercel Dashboard (e.g., https://your-project.vercel.app)");
-}
 
+if (!VERCEL_BASE_URL || !VERCEL_BASE_URL.startsWith('http')) {
+    console.error("VERCEL_BASE_URL environment variable is missing or invalid in create-panel.js.");
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ status: false, message: 'Method Not Allowed. Only GET is supported.' });
   }
 
-  const { username, ram, disk, cpu, hostingPackage, panelType, accessKey } = req.query;
-
-  if (!username || !ram || !disk || !cpu || !panelType || !hostingPackage || !accessKey) { // <-- accessKey sekarang wajib
+  const { username, ram, disk, cpu, hostingPackage, panelType, accessKey, deviceId } = req.query;
+  if (!username || !ram || !disk || !cpu || !panelType || !hostingPackage || !accessKey || !deviceId) {
     return res.status(400).json({ status: false, message: 'Missing required parameters.' });
   }
 
-  // --- Validasi Access Key dan Batasan Panel ---
+  // --- Validasi Access Key, Device, dan Batas Harian ---
   try {
     const db = await connectToDatabase();
     const collection = db.collection('accessKeys');
     const foundKey = await collection.findOne({ key: accessKey });
 
-    if (!foundKey || !foundKey.isActive) {
-      return res.status(403).json({ status: false, message: 'Invalid or inactive Access Key.' });
+    if (!foundKey) {
+      return res.status(403).json({ status: false, message: 'Invalid Access Key.' });
+    }
+    
+    // Periksa status kunci
+    if (foundKey.status !== 'active') {
+      return res.status(403).json({ status: false, message: `Access Key ini berstatus '${foundKey.status}'.` });
+    }
+
+    // Periksa otorisasi perangkat
+    const isDeviceAuthorized = foundKey.usedDevices.includes(deviceId);
+    if (!isDeviceAuthorized) {
+        return res.status(403).json({ status: false, message: 'Perangkat ini belum diotorisasi.' });
     }
 
     // Periksa batasan panel
-    const restriction = foundKey.panelTypeRestriction || 'both'; // Default ke 'both' jika tidak ada
+    const restriction = foundKey.panelTypeRestriction || 'both';
     const requestedPanelTypeLower = panelType.toLowerCase();
-
-    if (restriction === 'public' && requestedPanelTypeLower === 'private') {
-      return res.status(403).json({ status: false, message: 'Access Key ini hanya diizinkan untuk membuat panel publik.' });
+    if ((restriction === 'public' && requestedPanelTypeLower === 'private') || (restriction === 'private' && requestedPanelTypeLower === 'public')) {
+      return res.status(403).json({ status: false, message: `Access Key ini hanya diizinkan untuk membuat panel ${restriction}.` });
     }
-    if (restriction === 'private' && requestedPanelTypeLower === 'public') {
-      return res.status(403).json({ status: false, message: 'Access Key ini hanya diizinkan untuk membuat panel privat.' });
-    }
-    // Jika restriction 'both', maka tidak perlu validasi tambahan
 
-    // Update usageCount
+    // Periksa batas harian dan update counter
+    const today = new Date().toISOString().split('T')[0];
+    const lastUsed = foundKey.lastUsedDate ? new Date(foundKey.lastUsedDate).toISOString().split('T')[0] : null;
+
+    if (lastUsed !== today) {
+      foundKey.dailyUsage = 0;
+    }
+
+    if (foundKey.dailyLimit > 0 && foundKey.dailyUsage >= foundKey.dailyLimit) {
+      return res.status(403).json({ status: false, message: `Batas penggunaan harian (${foundKey.dailyLimit}) Access Key ini telah tercapai.` });
+    }
+    
+    // Update usageCount dan dailyUsage
     await collection.updateOne(
       { key: accessKey },
-      { $inc: { usageCount: 1 } }
+      { $inc: { usageCount: 1, dailyUsage: 1 }, $set: { lastUsedDate: new Date() } }
     );
-
   } catch (dbError) {
-    console.error('Error validating access key or updating usage count:', dbError);
+    console.error('Error in create-panel.js during key validation:', dbError);
     return res.status(500).json({ status: false, message: 'Internal server error during Access Key validation.' });
   }
-  // --- Akhir Validasi Access Key dan Batasan Panel ---
-
+  // --- Akhir Validasi Backend ---
 
   let currentPanelConfig;
   if (panelType === 'public') {
     currentPanelConfig = {
-      domain: PUBLIC_PANEL_DOMAIN,
-      ptla: PUBLIC_PANEL_PTLA,
-      ptlc: PUBLIC_PANEL_PTLC,
-      eggId: PUBLIC_PANEL_EGG_ID,
-      nestId: PUBLIC_PANEL_NEST_ID,
-      loc: PUBLIC_PANEL_LOC
+      domain: PUBLIC_PANEL_DOMAIN, ptla: PUBLIC_PANEL_PTLA, ptlc: PUBLIC_PANEL_PTLC,
+      eggId: PUBLIC_PANEL_EGG_ID, nestId: PUBLIC_PANEL_NEST_ID, loc: PUBLIC_PANEL_LOC
     };
   } else if (panelType === 'private') {
     currentPanelConfig = {
-      domain: PRIVATE_PANEL_DOMAIN,
-      ptla: PRIVATE_PANEL_PTLA,
-      ptlc: PRIVATE_PANEL_PTLC,
-      eggId: PRIVATE_PANEL_EGG_ID,
-      nestId: PRIVATE_PANEL_NEST_ID,
-      loc: PRIVATE_PANEL_LOC
+      domain: PRIVATE_PANEL_DOMAIN, ptla: PRIVATE_PANEL_PTLA, ptlc: PRIVATE_PANEL_PTLC,
+      eggId: PRIVATE_PANEL_EGG_ID, nestId: PRIVATE_PANEL_NEST_ID, loc: PRIVATE_PANEL_LOC
     };
   } else {
     return res.status(400).json({ status: false, message: 'Invalid panel type provided.' });
@@ -125,7 +131,6 @@ export default async function handler(req, res) {
     const apiData = await apiResponse.json();
 
     if (apiResponse.ok && apiData.status) {
-      // --- Kirim Notifikasi Telegram setelah panel berhasil dibuat ---
       const accessKeyUsed = escapeHTML(accessKey || 'Tidak Diketahui'); 
       const escapedUsername = escapeHTML(apiData.result.username);
       const escapedPassword = escapeHTML(apiData.result.password);
@@ -147,24 +152,9 @@ Server ID: ${apiData.result.id_server}
       
       await fetch(`${VERCEL_BASE_URL}/api/send-telegram-notification`, { 
           method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: notificationMessage }),
-      })
-      .then(notifRes => notifRes.json())
-      .then(notifData => {
-          if (!notifData.success) {
-              console.warn('Failed to send Telegram notification:', notifData.message);
-          } else {
-              console.log('Telegram notification sent successfully.');
-          }
-      })
-      .catch(notifError => {
-          console.error('Error calling Telegram notification API:', notifError);
       });
-      // --- Akhir Notifikasi Telegram ---
-
       res.status(200).json(apiData);
     } else {
       res.status(apiResponse.status || 500).json(apiData || { status: false, message: 'Failed to create server via external API.' });
