@@ -591,14 +591,21 @@
                                     requestButton.disabled = false;
                                 }
                             });
-                        } else if (errorData.details) {
-                            const errorTitle = errorData.details.status === 'DeviceAlreadyRegistered' ? 'Akses Kunci Sudah Terdaftar' : errorData.details.status;
-                            showMainMessage('error', `
-                                <h3>${errorTitle}</h3>
-                                <p>${errorData.message}</p>
-                            `);
                         } else {
-                            showToast('error', errorData.message || 'Error validasi tidak diketahui.');
+                            if (errorData.details?.status === 'DeviceAlreadyRegistered') {
+                                showMainMessage('error', `
+                                    <h3>Akses Kunci Sudah Terdaftar</h3>
+                                    <p>Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin untuk bantuan.</p>
+                                `);
+                            } else {
+                                const banMessageHTML = `
+                                    <div class="result-title" style="color: var(--error-color);">Access Key Anda Telah Di-ban</div>
+                                    <p><strong>Status:</strong> ${errorData.details?.status || 'Banned'}</p>
+                                    <p><strong>Alasan:</strong> ${errorData.details?.reason || 'Tidak ada alasan.'}</p>
+                                    <p><strong>Berakhir:</strong> ${errorData.details?.suspensionUntil || 'Permanen'}</p>
+                                `;
+                                showMainMessage('error', banMessageHTML);
+                            }
                         }
                         return;
                     }
@@ -608,28 +615,44 @@
                     if (!validationData.isValid) {
                         const errorData = validationData;
                         if (errorData.details?.status === 'Unauthorized') {
-                            showToast('info', 'Access key ini belum diotorisasi. Mengirim permintaan aktivasi...');
+                            const activationMessageHTML = `
+                                <div class="result-title" style="color: var(--primary-accent);">Akses Kunci Belum Diaktifkan</div>
+                                <p>Mohon maaf, perangkat Anda belum diotorisasi. Silakan minta aktivasi:</p>
+                                <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                <button id="request-activation-btn" class="form-button" style="margin-top: 15px;">Minta Aktivasi</button>
+                                <p style="font-size: 0.9em; margin-top: 15px;">Jika tombol tidak berfungsi dalam 10 menit, silakan kirim ID Perangkat di atas ke admin.</p>
+                            `;
+                            showMainMessage('info', activationMessageHTML);
                             
-                            try {
-                                const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ accessKey, deviceId }),
-                                });
-                                const data = await response.json();
-                                if (data.success) {
-                                    showMainMessage('info', `
-                                        <h3>Aktivasi Diproses</h3>
-                                        <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
-                                        <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
-                                    `);
-                                } else {
-                                    showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                            document.getElementById('request-activation-btn').addEventListener('click', async () => {
+                                showToast('info', 'Mengirim permintaan aktivasi...');
+                                const requestButton = document.getElementById('request-activation-btn');
+                                requestButton.disabled = true;
+
+                                try {
+                                    const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ accessKey, deviceId }),
+                                    });
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        showToast('success', 'Permintaan otorisasi berhasil dikirim!');
+                                        showMainMessage('info', `
+                                            <h3>Aktivasi Dikirim</h3>
+                                            <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                            <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                        `);
+                                    } else {
+                                        showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                                    }
+                                } catch (error) {
+                                    console.error('Error mengirim permintaan aktivasi:', error);
+                                    showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                                } finally {
+                                    requestButton.disabled = false;
                                 }
-                            } catch (error) {
-                                console.error('Error mengirim permintaan aktivasi:', error);
-                                showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
-                            }
+                            });
                         } else {
                             const errorTitle = errorData.details?.status === 'DeviceAlreadyRegistered' ? 'Akses Kunci Sudah Terdaftar' : errorData.details?.status || 'Error';
                             showMainMessage('error', `
@@ -712,7 +735,7 @@ Domain: ${panelDomainUrl}
                             <div class="result-row"><span>Paket:</span> <span>${selectedPackage.name}</span></div>
                             <div class="result-row"><span>Tipe Panel:</span> <span>${selectedPanelType.toUpperCase()}</span></div>
                             <div class="result-row"><span>ID User:</span> <span>${result.id_user}</span></div>
-                            <div class="result-row"><span>Server ID:</span> <span>${result.id_server}</span></span></div>
+                            <div class="result-row"><span>Server ID:</span> <span>${result.id_server}</span></div>
                             <div class="result-row"><span>Domain:</span> <span id="copyDomainValue"><a href="${panelDomainUrl}" target="_blank">${result.domain}</a></span></div>
                             <div class="result-actions">
                                 <button class="copy-button" data-copy-target="copyUsernameValue">Copy Username</button>
