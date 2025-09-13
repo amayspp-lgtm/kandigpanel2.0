@@ -4,467 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Creator</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
-        :root {
-            --bg-color: #0d1117;
-            --container-bg: #161b22;
-            --primary-accent: #007BFF;
-            --secondary-accent: #00FFFF;
-            --text-color: #F0F0F0;
-            --input-bg: #11141a;
-            --border-color: #30363d;
-            --error-color: #F74747;
-            --success-color: #38C768;
-            --placeholder-color: #8B949E;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --glow-effect: 0 0 8px var(--primary-accent), 0 0 15px var(--primary-accent);
-        }
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            max-width: 900px;
-            width: 95%;
-            background-color: var(--container-bg);
-            border-radius: 15px;
-            box-shadow: 0 15px 40px var(--shadow-color);
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-        @media (min-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1.2fr 1fr;
-            }
-        }
-        .info-panel {
-            background-color: var(--input-bg);
-            padding: 40px;
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            border-right: 1px solid var(--border-color);
-        }
-        .info-panel h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--primary-accent);
-            text-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
-        }
-        #logo-container {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        .icon-logo {
-            font-size: 4em;
-            color: var(--secondary-accent);
-            text-shadow: 0 0 15px var(--secondary-accent);
-        }
-        .custom-logo {
-            max-width: 150px;
-            height: auto;
-            border-radius: 8px;
-        }
-        .form-panel {
-            padding: 40px;
-        }
-        .form-group {
-            margin-bottom: 25px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-        .icon-label {
-            margin-right: 8px;
-            color: var(--secondary-accent);
-        }
-        .form-input {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 1em;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .form-input::placeholder {
-            color: var(--placeholder-color);
-        }
-        .form-input:focus {
-            border-color: var(--primary-accent);
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
-            outline: none;
-        }
-        select.form-input {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23F0F0F0%22%20d%3D%22M287%2069.9a14.2%2014.2%200%200%200-20.2%200L146.2%20190.4%2025.6%2069.9a14.2%2014.2%200%200%00-20.2%2020.2l130.6%20130.6a14.2%2014.2%200%200%0020.2%200L287%2090.1a14.2%2014.2%200%200%000-20.2z%22%2F%3E%3C%2Fsvg%3E');
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 12px;
-            padding-right: 35px;
-        }
-        .form-button {
-            width: 100%;
-            padding: 16px;
-            background-color: var(--primary-accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-            margin-top: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .form-button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-        .form-button:disabled {
-            background-color: #4A5568;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .loader-dots {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 10px;
-            width: 30px;
-            height: 18px;
-            display: none;
-        }
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--secondary-accent);
-            margin: 0 3px;
-            animation: bounce 0.6s infinite alternate;
-        }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce {
-            to { transform: translateY(-5px); }
-        }
-        .response-message {
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 8px;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
-        .response-message.success {
-            border-color: var(--success-color);
-            color: var(--success-color);
-        }
-        .response-message.error {
-            border-color: var(--error-color);
-            color: var(--error-color);
-        }
-        .result-title {
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .result-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-        }
-        .result-row:last-of-type {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        .result-row span:first-child {
-            font-weight: 500;
-            color: var(--placeholder-color);
-        }
-        .result-row span:last-child {
-            flex-grow: 1;
-            text-align: right;
-            color: var(--text-color);
-            word-break: break-all;
-            font-weight: 600;
-        }
-        .result-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .result-actions button {
-            flex: 1 1 calc(50% - 10px);
-            max-width: calc(50% - 5px);
-            padding: 10px 12px;
-            font-size: 0.8em;
-            margin-top: 0;
-            box-shadow: none;
-            background-color: #4A5568;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            white-space: nowrap;
-            transition: background-color 0.2s ease;
-        }
-        .result-actions button:hover {
-            background-color: #636E7B;
-        }
-        .result-actions button.login-panel-button {
-            background-color: var(--primary-accent);
-            color: white;
-            border-color: transparent;
-        }
-        .result-actions button.login-panel-button:hover {
-            background-color: #0056b3;
-        }
-        .copy-all-button {
-            width: 100%;
-            margin-top: 20px;
-            background-color: var(--primary-accent);
-            color: white;
-            font-size: 0.95em;
-            padding: 14px;
-            border-radius: 8px;
-            transition: background-color 0.3s ease;
-        }
-        .copy-all-button:hover {
-            background-color: #0056b3;
-        }
-        .contact-message {
-            font-size: 0.8em;
-            color: var(--placeholder-color);
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .contact-message a {
-            color: var(--primary-accent);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .contact-message a:hover {
-            text-decoration: underline;
-        }
-        #toast-notification-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .toast-notification {
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-color);
-            animation: slideInRight 0.4s ease-out forwards;
-            transform: translateX(100%);
-            opacity: 0;
-            min-width: 250px;
-            max-width: 350px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-        .toast-notification.show {
-            animation: slideInRight 0.4s ease-out forwards, fadeOut 0.5s ease-in forwards 2.5s;
-        }
-        .toast-notification.success { border-left: 4px solid var(--success-color); }
-        .toast-notification.error { border-left: 4px solid var(--error-color); }
-        .toast-notification.info { border-left: 4px solid var(--primary-accent); }
-        .toast-notification .icon { font-size: 1.4em; line-height: 1; }
-        .toast-notification.success .icon { color: var(--success-color); }
-        .toast-notification.error .icon { color: var(--error-color); }
-        .toast-notification.info .icon { color: var(--primary-accent); }
-        .toast-notification .message { flex-grow: 1; }
-        .toast-notification .close-btn {
-            background: none;
-            border: none;
-            color: var(--placeholder-color);
-            font-size: 1.2em;
-            cursor: pointer;
-            padding: 0 5px;
-            transition: color 0.2s ease;
-        }
-        .toast-notification .close-btn:hover { color: var(--text-color); }
-        @keyframes slideInRight { to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        #ban-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        #ban-popup-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .ban-popup {
-            background-color: var(--container-bg);
-            padding: 30px 40px;
-            border-radius: 15px;
-            border: 2px solid var(--error-color);
-            box-shadow: 0 0 20px rgba(247, 71, 71, 0.5);
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            margin-top: 50px;
-            transform: translateY(-20px) scale(0.9);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        #ban-popup-overlay.show .ban-popup {
-            transform: translateY(0) scale(1);
-        }
-        .ban-popup h2 {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--error-color);
-            font-weight: 700;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-        }
-        .ban-popup .popup-content p {
-            font-size: 1em;
-            margin-bottom: 15px;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-        }
-        .ban-popup .popup-content p strong {
-            color: var(--placeholder-color);
-        }
-        .ban-popup .popup-content span {
-            font-weight: 600;
-            color: var(--text-color);
-        }
-        #close-popup-btn {
-            margin-top: 25px;
-            width: 100%;
-            padding: 12px;
-            background-color: var(--error-color);
-            color: white;
-        }
-        #close-popup-btn:hover {
-            background-color: #d1463e;
-        }
-        #activation-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        #activation-popup-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .activation-popup {
-            background-color: var(--container-bg);
-            padding: 30px 40px;
-            border-radius: 15px;
-            border: 2px solid var(--primary-accent);
-            box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            margin-top: 50px;
-            transform: translateY(-20px) scale(0.9);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        #activation-popup-overlay.show .activation-popup {
-            transform: translateY(0) scale(1);
-        }
-        .activation-popup h2 {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--primary-accent);
-            font-weight: 700;
-            font-size: 1.8em;
-            margin-bottom: 20px;
-        }
-        .activation-popup .activation-content p {
-            font-size: 1em;
-            margin-bottom: 15px;
-            color: var(--text-color);
-        }
-        #request-activation-btn {
-            margin-top: 25px;
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-accent);
-            color: white;
-        }
-        #request-activation-btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
 </head>
 <body>
@@ -541,29 +84,6 @@
 
     <div id="toast-notification-container"></div>
     
-    <div id="ban-popup-overlay" class="hidden">
-        <div id="ban-popup" class="ban-popup">
-            <h2 id="popup-title"></h2>
-            <div class="popup-content">
-                <p><strong>Status:</strong> <span id="popup-status"></span></p>
-                <p><strong>Alasan:</strong> <span id="popup-reason"></span></p>
-                <p><strong>Berakhir Pada:</strong> <span id="popup-until"></span></p>
-            </div>
-            <button id="close-popup-btn" class="form-button">Tutup</button>
-        </div>
-    </div>
-
-    <div id="activation-popup-overlay" class="hidden">
-        <div id="activation-popup" class="activation-popup">
-            <h2 id="activation-title">Akses Kunci Belum Diaktifkan</h2>
-            <div class="activation-content">
-                <p>Mohon maaf, perangkat Anda belum diotorisasi untuk menggunakan kunci ini.</p>
-                <p>Klik tombol di bawah ini untuk mengirim permintaan otorisasi kepada admin.</p>
-            </div>
-            <button id="request-activation-btn" class="form-button">Minta Aktivasi</button>
-        </div>
-    </div>
-    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM Content Loaded. Script dimulai.');
@@ -594,27 +114,6 @@
             const toastContainer = document.getElementById('toast-notification-container');
             const panelTypeSelect = document.getElementById('panelType');
             const logoContainer = document.getElementById('logo-container');
-
-            const banPopupOverlay = document.getElementById('ban-popup-overlay');
-            const banPopupTitle = document.getElementById('popup-title');
-            const banPopupStatus = document.getElementById('popup-status');
-            const banPopupReason = document.getElementById('popup-reason');
-            const banPopupUntil = document.getElementById('popup-until');
-            const closePopupBtn = document.getElementById('close-popup-btn');
-
-            const activationPopupOverlay = document.getElementById('activation-popup-overlay');
-            const requestActivationBtn = document.getElementById('request-activation-btn');
-            const activationTitle = document.getElementById('activation-title');
-            const activationContent = document.getElementById('activation-content');
-
-            const CUSTOM_LOGO_URL = '';
-            function loadCustomLogo() {
-                if (CUSTOM_LOGO_URL) {
-                    logoContainer.innerHTML = `<img src="${CUSTOM_LOGO_URL}" alt="Custom Logo" class="custom-logo">`;
-                } else {
-                    logoContainer.innerHTML = '<i class="fas fa-microchip icon-logo"></i>';
-                }
-            }
 
             function showMainMessage(type, messageHTML) {
                 responseMessageDiv.style.display = 'block';
@@ -657,58 +156,7 @@
                 }, duration);
             }
             
-            function showBanPopup(details) {
-                banPopupTitle.textContent = details.status === 'Suspended' ? 'Access Key Ditangguhkan' : 'Access Key Diban';
-                banPopupStatus.textContent = details.status;
-                banPopupReason.textContent = details.reason;
-                
-                if (details.suspensionUntil && details.suspensionUntil !== 'Permanen') {
-                    const date = new Date(details.suspensionUntil);
-                    banPopupUntil.textContent = date.toLocaleString();
-                } else {
-                    banPopupUntil.textContent = 'Permanen';
-                }
-
-                banPopupOverlay.classList.remove('hidden');
-                banPopupOverlay.classList.add('show');
-            }
-
-            function showActivationPopup(accessKey, deviceId) {
-                activationPopupOverlay.classList.remove('hidden');
-                activationPopupOverlay.classList.add('show');
-
-                requestActivationBtn.addEventListener('click', async () => {
-                    activationTitle.textContent = 'Aktivasi Diproses...';
-                    activationContent.innerHTML = 'Mohon tunggu admin mengotorisasi perangkat Anda.';
-                    requestActivationBtn.disabled = true;
-
-                    try {
-                        console.log('Mengirim permintaan aktivasi ke backend...');
-                        const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ accessKey, deviceId }),
-                        });
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            showToast('info', 'Permintaan otorisasi berhasil dikirim!');
-                        } else {
-                            showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
-                            activationTitle.textContent = 'Gagal Mengirim Permintaan';
-                            activationContent.innerHTML = 'Terjadi kesalahan. Silakan coba lagi.';
-                            requestActivationBtn.disabled = false;
-                        }
-                    } catch (error) {
-                        console.error('Fatal Error:', error);
-                        showToast('error', 'Terjadi kesalahan jaringan.');
-                        activationTitle.textContent = 'Gagal Mengirim Permintaan';
-                        activationContent.innerHTML = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
-                        requestActivationBtn.disabled = false;
-                    }
-                });
-            }
-
+            // Perbaikan: Fungsi getDeviceId yang lebih kuat
             async function getDeviceId() {
                 let deviceId = localStorage.getItem('deviceId');
                 if (deviceId) {
@@ -721,7 +169,7 @@
                     new Date().getTimezoneOffset() +
                     window.innerWidth +
                     window.innerHeight +
-                    navigator.vendor +
+                    navigator.vendor + 
                     navigator.hardwareConcurrency +
                     navigator.maxTouchPoints +
                     screen.colorDepth
@@ -736,11 +184,6 @@
                 localStorage.setItem('deviceId', deviceId);
                 return deviceId;
             }
-
-            closePopupBtn.addEventListener('click', () => {
-                banPopupOverlay.classList.remove('show');
-                banPopupOverlay.classList.add('hidden');
-            });
 
             loadCustomLogo(); 
 
@@ -773,43 +216,59 @@
                     const validateUrl = `${YOUR_VALIDATION_API_ENDPOINT}?accessKey=${encodeURIComponent(accessKey)}&deviceId=${encodeURIComponent(deviceId)}`;
                     const validationResponse = await fetch(validateUrl, { method: 'GET' });
                     
+                    // Perbaikan: Periksa status respons secara eksplisit
                     if (!validationResponse.ok) {
                         const errorData = await validationResponse.json();
+                        
                         if (errorData.details?.status === 'Unauthorized') {
-                            showToast('info', 'Access key ini belum diotorisasi. Mengirim permintaan aktivasi...');
+                            const activationMessageHTML = `
+                                <div class="result-title" style="color: var(--primary-accent);">Akses Kunci Belum Diaktifkan</div>
+                                <p>Mohon maaf, perangkat Anda belum diotorisasi. Silakan minta aktivasi:</p>
+                                <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                <button id="request-activation-btn" class="form-button" style="margin-top: 15px;">Minta Aktivasi</button>
+                                <p style="font-size: 0.9em; margin-top: 15px;">Jika tombol tidak berfungsi dalam 10 menit, silakan kirim ID Perangkat di atas ke admin.</p>
+                            `;
+                            showMainMessage('info', activationMessageHTML);
                             
-                            try {
-                                const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ accessKey, deviceId }),
-                                });
-                                const data = await response.json();
-                                if (data.success) {
-                                    showMainMessage('info', `
-                                        <h3>Aktivasi Diproses</h3>
-                                        <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
-                                        <p>Jika notifikasi tidak masuk ke Telegram, silakan kirim ID ini ke admin:</p>
-                                        <pre><code>${deviceId}</code></pre>
-                                    `);
-                                } else {
-                                    showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
-                                }
-                            } catch (error) {
-                                console.error('Error mengirim permintaan aktivasi:', error);
-                                showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
-                            }
+                            // Tambahkan listener untuk tombol aktivasi yang baru
+                            document.getElementById('request-activation-btn').addEventListener('click', async () => {
+                                showToast('info', 'Mengirim permintaan aktivasi...');
+                                const requestButton = document.getElementById('request-activation-btn');
+                                requestButton.disabled = true;
 
+                                try {
+                                    const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ accessKey, deviceId }),
+                                    });
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        showToast('success', 'Permintaan otorisasi berhasil dikirim!');
+                                        showMainMessage('info', `
+                                            <h3>Aktivasi Dikirim</h3>
+                                            <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                            <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                        `);
+                                    } else {
+                                        showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                                    }
+                                } catch (error) {
+                                    console.error('Error mengirim permintaan aktivasi:', error);
+                                    showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                                } finally {
+                                    requestButton.disabled = false;
+                                }
+                            });
+                        } else if (errorData.details) {
+                            const errorTitle = errorData.details.status === 'DeviceAlreadyRegistered' ? 'Akses Kunci Sudah Terdaftar' : errorData.details.status;
+                            showMainMessage('error', `
+                                <h3>${errorTitle}</h3>
+                                <p>${errorData.message}</p>
+                            `);
                         } else {
-                             // Perbaikan: Tambahkan penanganan error baru
-                            if (errorData.details?.status === 'DeviceAlreadyRegistered') {
-                                showMainMessage('error', `
-                                    <h3>Akses Kunci Sudah Terdaftar</h3>
-                                    <p>Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin untuk bantuan.</p>
-                                `);
-                            } else {
-                                showBanPopup(errorData.details);
-                            }
+                            showToast('error', errorData.message || 'Error validasi tidak diketahui.');
                         }
                         return;
                     }
@@ -817,62 +276,71 @@
                     const validationData = await validationResponse.json();
                     
                     if (!validationData.isValid) {
-                        if (validationData.details?.status === 'Unauthorized') {
-                            showToast('info', 'Access key ini belum diotorisasi. Mengirim permintaan aktivasi...');
+                        const errorData = validationData;
+                        if (errorData.details?.status === 'Unauthorized') {
+                            const activationMessageHTML = `
+                                <div class="result-title" style="color: var(--primary-accent);">Akses Kunci Belum Diaktifkan</div>
+                                <p>Mohon maaf, perangkat Anda belum diotorisasi. Silakan minta aktivasi:</p>
+                                <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                <button id="request-activation-btn" class="form-button" style="margin-top: 15px;">Minta Aktivasi</button>
+                                <p style="font-size: 0.9em; margin-top: 15px;">Jika tombol tidak berfungsi dalam 10 menit, silakan kirim ID Perangkat di atas ke admin.</p>
+                            `;
+                            showMainMessage('info', activationMessageHTML);
                             
-                            try {
-                                const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ accessKey, deviceId }),
-                                });
-                                const data = await response.json();
-                                if (data.success) {
-                                    showMainMessage('info', `
-                                        <h3>Aktivasi Diproses</h3>
-                                        <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
-                                        <p>Jika notifikasi tidak masuk ke Telegram, silakan kirim ID ini ke admin:</p>
-                                        <pre><code>${deviceId}</code></pre>
-                                    `);
-                                } else {
-                                    showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                            document.getElementById('request-activation-btn').addEventListener('click', async () => {
+                                showToast('info', 'Mengirim permintaan aktivasi...');
+                                const requestButton = document.getElementById('request-activation-btn');
+                                requestButton.disabled = true;
+
+                                try {
+                                    const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ accessKey, deviceId }),
+                                    });
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        showToast('success', 'Permintaan otorisasi berhasil dikirim!');
+                                        showMainMessage('info', `
+                                            <h3>Aktivasi Dikirim</h3>
+                                            <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                            <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                        `);
+                                    } else {
+                                        showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                                    }
+                                } catch (error) {
+                                    console.error('Error mengirim permintaan aktivasi:', error);
+                                    showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                                } finally {
+                                    requestButton.disabled = false;
                                 }
-                            } catch (error) {
-                                console.error('Error mengirim permintaan aktivasi:', error);
-                                showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
-                            }
+                            });
                         } else {
-                            // Perbaikan: Tambahkan penanganan error baru
-                            if (validationData.details?.status === 'DeviceAlreadyRegistered') {
-                                showMainMessage('error', `
-                                    <h3>Akses Kunci Sudah Terdaftar</h3>
-                                    <p>Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin untuk bantuan.</p>
-                                `);
-                            } else {
-                                showBanPopup(validationData.details);
-                            }
+                            const errorTitle = errorData.details?.status === 'DeviceAlreadyRegistered' ? 'Akses Kunci Sudah Terdaftar' : errorData.details?.status || 'Error';
+                            showMainMessage('error', `
+                                <h3>${errorTitle}</h3>
+                                <p>${errorData.message}</p>
+                            `);
                         }
                         return;
                     }
 
                     console.log('5. Access Key valid. Melanjutkan ke pembuatan panel...');
-
                     if (!selectedPanelType) {
                         showToast('error', 'Silakan pilih tipe panel (Public/Private)!');
                         return;
                     }
-
                     if (!username || !hostingPackage) {
                         showToast('error', 'Username dan Paket Hosting harus diisi!');
                         return;
                     }
-
                     const usernameInput = document.getElementById('username');
                     if (!usernameInput.checkValidity()) {
                         showToast('error', `Username tidak valid: ${usernameInput.title}`);
                         return;
                     }
-
                     const selectedPackage = PACKAGES[hostingPackage];
                     if (!selectedPackage) {
                         showToast('error', 'Pilih paket hosting yang valid.');
@@ -893,7 +361,6 @@
                     }).toString();
 
                     const finalRequestUrl = `${YOUR_CREATE_PANEL_API_ENDPOINT}?${requestParams}`;
-
                     console.log('6. Mengirim permintaan pembuatan panel ke API...');
                     const response = await fetch(finalRequestUrl, {
                         method: 'GET',
@@ -908,11 +375,9 @@
                     const data = await response.json();
                     
                     console.log('7. Respons dari API diterima:', data);
-
                     if (data.status) {
                         const result = data.result;
                         const panelDomainUrl = result.domain; 
-
                         const fullTextToCopy = `
 ==============================
    DETAIL AKUN PANEL ANDA   
@@ -926,7 +391,6 @@ Server ID: ${result.id_server}
 Domain: ${panelDomainUrl}
 ==============================
 `.trim();
-
                         const successMessageHTML = `
                             <div class="result-title">Panel Berhasil Dibuat!</div>
                             <div class="result-row"><span>Username:</span> <span id="copyUsernameValue">${result.username}</span></div>
@@ -936,7 +400,6 @@ Domain: ${panelDomainUrl}
                             <div class="result-row"><span>ID User:</span> <span>${result.id_user}</span></div>
                             <div class="result-row"><span>Server ID:</span> <span>${result.id_server}</span></div>
                             <div class="result-row"><span>Domain:</span> <span id="copyDomainValue"><a href="${panelDomainUrl}" target="_blank">${result.domain}</a></span></div>
-                            
                             <div class="result-actions">
                                 <button class="copy-button" data-copy-target="copyUsernameValue">Copy Username</button>
                                 <button class="copy-button" data-copy-target="copyPasswordValue">Copy Password</button>
@@ -952,7 +415,6 @@ Domain: ${panelDomainUrl}
                         createPanelForm.reset(); 
                         showToast('success', 'Panel berhasil dibuat!'); 
                         console.log('8. Proses berhasil. Pesan sukses ditampilkan.');
-
                     } else {
                         const errorMessage = data.message || 'Terjadi kesalahan saat membuat panel.';
                         showMainMessage('error', `<b>Gagal membuat server!</b><br>Pesan: ${errorMessage}`); 
@@ -971,12 +433,10 @@ Domain: ${panelDomainUrl}
                     console.log('10. Proses selesai. Loading dimatikan.');
                 }
             });
-
             responseMessageDiv.addEventListener('click', async (event) => {
                 if (event.target.classList.contains('copy-button')) {
                     const targetId = event.target.dataset.copyTarget;
                     const textToCopy = document.getElementById(targetId).textContent;
-                    
                     if (textToCopy) {
                         try {
                             await navigator.clipboard.writeText(textToCopy);
