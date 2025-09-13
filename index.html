@@ -708,8 +708,7 @@
                     }
                 });
             }
-            
-            // Perbaikan: Fungsi getDeviceId yang lebih kuat
+
             async function getDeviceId() {
                 let deviceId = localStorage.getItem('deviceId');
                 if (deviceId) {
@@ -721,9 +720,13 @@
                     navigator.platform +
                     new Date().getTimezoneOffset() +
                     window.innerWidth +
-                    window.innerHeight
+                    window.innerHeight +
+                    navigator.vendor +
+                    navigator.hardwareConcurrency +
+                    navigator.maxTouchPoints +
+                    screen.colorDepth
                 );
-
+                
                 const encoder = new TextEncoder();
                 const data = encoder.encode(fingerprint);
                 const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -773,9 +776,40 @@
                     if (!validationResponse.ok) {
                         const errorData = await validationResponse.json();
                         if (errorData.details?.status === 'Unauthorized') {
-                            showActivationPopup(accessKey, deviceId);
+                            showToast('info', 'Access key ini belum diotorisasi. Mengirim permintaan aktivasi...');
+                            
+                            try {
+                                const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ accessKey, deviceId }),
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                    showMainMessage('info', `
+                                        <h3>Aktivasi Diproses</h3>
+                                        <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                        <p>Jika notifikasi tidak masuk ke Telegram, silakan kirim ID ini ke admin:</p>
+                                        <pre><code>${deviceId}</code></pre>
+                                    `);
+                                } else {
+                                    showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                                }
+                            } catch (error) {
+                                console.error('Error mengirim permintaan aktivasi:', error);
+                                showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                            }
+
                         } else {
-                            showBanPopup(errorData.details);
+                             // Perbaikan: Tambahkan penanganan error baru
+                            if (errorData.details?.status === 'DeviceAlreadyRegistered') {
+                                showMainMessage('error', `
+                                    <h3>Akses Kunci Sudah Terdaftar</h3>
+                                    <p>Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin untuk bantuan.</p>
+                                `);
+                            } else {
+                                showBanPopup(errorData.details);
+                            }
                         }
                         return;
                     }
@@ -784,9 +818,39 @@
                     
                     if (!validationData.isValid) {
                         if (validationData.details?.status === 'Unauthorized') {
-                            showActivationPopup(accessKey, deviceId);
+                            showToast('info', 'Access key ini belum diotorisasi. Mengirim permintaan aktivasi...');
+                            
+                            try {
+                                const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ accessKey, deviceId }),
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                    showMainMessage('info', `
+                                        <h3>Aktivasi Diproses</h3>
+                                        <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                        <p>Jika notifikasi tidak masuk ke Telegram, silakan kirim ID ini ke admin:</p>
+                                        <pre><code>${deviceId}</code></pre>
+                                    `);
+                                } else {
+                                    showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                                }
+                            } catch (error) {
+                                console.error('Error mengirim permintaan aktivasi:', error);
+                                showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                            }
                         } else {
-                            showBanPopup(validationData.details);
+                            // Perbaikan: Tambahkan penanganan error baru
+                            if (validationData.details?.status === 'DeviceAlreadyRegistered') {
+                                showMainMessage('error', `
+                                    <h3>Akses Kunci Sudah Terdaftar</h3>
+                                    <p>Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin untuk bantuan.</p>
+                                `);
+                            } else {
+                                showBanPopup(validationData.details);
+                            }
                         }
                         return;
                     }
