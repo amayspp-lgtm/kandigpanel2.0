@@ -5,7 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const YOUR_VALIDATION_API_ENDPOINT = '/api/validate-access-key'; 
     const YOUR_CREATE_PANEL_API_ENDPOINT = '/api/create-panel';
+    const YOUR_REQUEST_ACTIVATION_API_ENDPOINT = '/api/request-activation';
     
+    // Konfigurasi ini diambil dari file asli Anda
+    const WEBSITE_ACCESS_KEY = 'your_default_access_key'; // Ini harus diatur di Vercel env
+    const IS_PUBLIC_PANEL_ENABLED = true;
+    const IS_PRIVATE_PANEL_ENABLED = true;
+
     const PACKAGES = {
         "1gb": { ram: 1024, disk: 1024, cpu: 100, name: "1 GB" },
         "2gb": { ram: 2048, disk: 2048, cpu: 100, name: "2 GB" },
@@ -24,37 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const createButton = document.getElementById('createButton');
     const createButtonText = createButton.querySelector('span:first-child');
     const loadingSpinner = document.getElementById('loadingSpinner');
+    const progressBar = createButton.querySelector('.loading-progress-bar');
     const responseMessageDiv = document.getElementById('responseMessage');
     const toastContainer = document.getElementById('toast-notification-container');
     const panelTypeSelect = document.getElementById('panelType');
-    const logoContainer = document.getElementById('logo-container');
-
-    const banPopupOverlay = document.getElementById('ban-popup-overlay');
-    const banPopupTitle = document.getElementById('popup-title');
-    const banPopupStatus = document.getElementById('popup-status');
-    const banPopupReason = document.getElementById('popup-reason');
-    const banPopupUntil = document.getElementById('popup-until');
-    const closePopupBtn = document.getElementById('close-popup-btn');
-
-    const CUSTOM_LOGO_URL = '';
-    function loadCustomLogo() {
-        if (CUSTOM_LOGO_URL) {
-            logoContainer.innerHTML = `<img src="${CUSTOM_LOGO_URL}" alt="Custom Logo" class="custom-logo">`;
-        } else {
-            logoContainer.innerHTML = '<i class="fas fa-microchip icon-logo"></i>';
-        }
-    }
 
     function showMainMessage(type, messageHTML) {
-        responseMessageDiv.style.display = 'block';
-        responseMessageDiv.className = `response-message ${type}`; 
+        responseMessageDiv.className = type; 
         responseMessageDiv.innerHTML = messageHTML;
-    }
-
-    function hideMainMessage() {
-        responseMessageDiv.style.display = 'none';
-        responseMessageDiv.className = `response-message`;
-        responseMessageDiv.innerHTML = '';
+        responseMessageDiv.style.opacity = 0; 
+        responseMessageDiv.style.transform = 'translateY(20px)'; 
+        void responseMessageDiv.offsetWidth; 
+        responseMessageDiv.style.opacity = 1; 
+        responseMessageDiv.style.transform = 'translateY(0)'; 
     }
 
     function showToast(type, message, duration = 3000) {
@@ -77,37 +65,77 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         toastContainer.appendChild(toast);
-        void toast.offsetWidth;
-        toast.classList.add('show');
 
         setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 500);
+            toast.style.animation = 'fadeOut 0.5s ease-in forwards';
+            toast.addEventListener('animationend', () => {
+                toast.remove();
+            });
         }, duration);
     }
-    
-    function showBanPopup(details) {
-        banPopupTitle.textContent = details.status === 'Suspended' ? 'Access Key Ditangguhkan' : 'Access Key Diban';
-        banPopupStatus.textContent = details.status;
-        banPopupReason.textContent = details.reason;
-        
-        if (details.suspensionUntil && details.suspensionUntil !== 'Permanen') {
-            const date = new Date(details.suspensionUntil);
-            banPopupUntil.textContent = date.toLocaleString();
-        } else {
-            banPopupUntil.textContent = 'Permanen';
+            
+    // Perbaikan: Fungsi getDeviceId yang lebih kuat
+    async function getDeviceId() {
+        let deviceId = localStorage.getItem('deviceId');
+        if (deviceId) {
+            return deviceId;
         }
 
-        banPopupOverlay.classList.remove('hidden');
-        banPopupOverlay.classList.add('show');
+        const fingerprint = (
+            navigator.userAgent +
+            navigator.platform +
+            new Date().getTimezoneOffset() +
+            window.innerWidth +
+            window.innerHeight +
+            navigator.vendor + 
+            navigator.hardwareConcurrency +
+            navigator.maxTouchPoints +
+            screen.colorDepth
+        );
+        
+        const encoder = new TextEncoder();
+        const data = encoder.encode(fingerprint);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        deviceId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        localStorage.setItem('deviceId', deviceId);
+        return deviceId;
     }
 
-    closePopupBtn.addEventListener('click', () => {
-        banPopupOverlay.classList.remove('show');
-        banPopupOverlay.classList.add('hidden');
-    });
+    function populatePanelTypeDropdown() {
+        panelTypeSelect.innerHTML = '<option value="" disabled selected>Pilih Tipe Panel</option>';
+        
+        let optionsAdded = 0;
+        if (IS_PUBLIC_PANEL_ENABLED) {
+            const publicOption = document.createElement('option');
+            publicOption.value = 'public';
+            publicOption.textContent = 'Public Panel';
+            panelTypeSelect.appendChild(publicOption);
+            optionsAdded++;
+        }
 
-    loadCustomLogo(); 
+        if (IS_PRIVATE_PANEL_ENABLED) {
+            const privateOption = document.createElement('option');
+            privateOption.value = 'private';
+            privateOption.textContent = 'Private Panel';
+            panelTypeSelect.appendChild(privateOption);
+            optionsAdded++;
+        }
+
+        if (optionsAdded === 0) {
+            const noOption = document.createElement('option');
+            noOption.value = '';
+            noOption.textContent = 'Tidak ada panel tersedia';
+            noOption.disabled = true;
+            panelTypeSelect.appendChild(noOption);
+            panelTypeSelect.disabled = true;
+        } else if (optionsAdded === 1) {
+            panelTypeSelect.selectedIndex = 1;
+        }
+    }
+    
+    populatePanelTypeDropdown();
 
     createPanelForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -126,44 +154,150 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingSpinner.style.display = 'flex';
             console.log('3. Status loading sudah aktif.');
 
-            hideMainMessage();
+            responseMessageDiv.innerHTML = ''; 
+            responseMessageDiv.className = ''; 
 
             const accessKey = document.getElementById('accessKey').value;
             const selectedPanelType = panelTypeSelect.value;
             const username = document.getElementById('username').value;
             const hostingPackage = document.getElementById('hostingPackage').value;
+            const deviceId = await getDeviceId();
             
             console.log('4. Memvalidasi Access Key...');
-            const validateUrl = `${YOUR_VALIDATION_API_ENDPOINT}?accessKey=${encodeURIComponent(accessKey)}`;
+            const validateUrl = `${YOUR_VALIDATION_API_ENDPOINT}?accessKey=${encodeURIComponent(accessKey)}&deviceId=${encodeURIComponent(deviceId)}`;
             const validationResponse = await fetch(validateUrl, { method: 'GET' });
-            const validationData = await validationResponse.json();
             
-            if (!validationData.isValid) {
-                if (validationData.details) {
-                    showBanPopup(validationData.details);
+            if (!validationResponse.ok) {
+                const errorData = await validationResponse.json();
+                
+                if (errorData.details?.status === 'Unauthorized') {
+                     const activationMessageHTML = `
+                        <div class="result-title" style="color: var(--primary-accent);">Akses Kunci Belum Diaktifkan</div>
+                        <p>Mohon maaf, perangkat Anda belum diotorisasi. Silakan minta aktivasi:</p>
+                        <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                        <button id="request-activation-btn" class="cyber-button" style="margin-top: 15px;">Minta Aktivasi</button>
+                        <p style="font-size: 0.9em; margin-top: 15px;">Jika tombol tidak berfungsi dalam 10 menit, silakan kirim ID Perangkat di atas ke admin.</p>
+                    `;
+                    showMainMessage('info', activationMessageHTML);
+                    
+                    document.getElementById('request-activation-btn').addEventListener('click', async () => {
+                        showToast('info', 'Mengirim permintaan aktivasi...');
+                        const requestButton = document.getElementById('request-activation-btn');
+                        requestButton.disabled = true;
+
+                        try {
+                            const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ accessKey, deviceId }),
+                            });
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                showToast('success', 'Permintaan otorisasi berhasil dikirim!');
+                                showMainMessage('info', `
+                                    <h3>Aktivasi Dikirim</h3>
+                                    <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                    <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                `);
+                            } else {
+                                showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                            }
+                        } catch (error) {
+                            console.error('Error mengirim permintaan aktivasi:', error);
+                            showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                        } finally {
+                            requestButton.disabled = false;
+                        }
+                    });
                 } else {
-                    showToast('error', validationData.message);
+                    if (errorData.details?.status === 'DeviceAlreadyRegistered') {
+                        showMainMessage('error', `
+                            <h3>Akses Kunci Sudah Terdaftar</h3>
+                            <p>Access Key ini sudah terdaftar di perangkat lain. Silakan hubungi admin untuk bantuan.</p>
+                        `);
+                    } else {
+                        const banMessageHTML = `
+                            <div class="result-title" style="color: var(--error-color);">Access Key Anda Telah Di-ban</div>
+                            <p><strong>Status:</strong> ${errorData.details?.status || 'Banned'}</p>
+                            <p><strong>Alasan:</strong> ${errorData.details?.reason || 'Tidak ada alasan.'}</p>
+                            <p><strong>Berakhir:</strong> ${errorData.details?.suspensionUntil || 'Permanen'}</p>
+                        `;
+                        showMainMessage('error', banMessageHTML);
+                    }
                 }
                 return;
             }
-            console.log('5. Access Key valid. Melanjutkan ke pembuatan panel...');
 
+            const validationData = await validationResponse.json();
+            
+            if (!validationData.isValid) {
+                 if (validationData.details?.status === 'Unauthorized') {
+                    const activationMessageHTML = `
+                        <div class="result-title" style="color: var(--primary-accent);">Akses Kunci Belum Diaktifkan</div>
+                        <p>Mohon maaf, perangkat Anda belum diotorisasi. Silakan minta aktivasi:</p>
+                        <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                        <button id="request-activation-btn" class="cyber-button" style="margin-top: 15px;">Minta Aktivasi</button>
+                        <p style="font-size: 0.9em; margin-top: 15px;">Jika tombol tidak berfungsi dalam 10 menit, silakan kirim ID Perangkat di atas ke admin.</p>
+                    `;
+                    showMainMessage('info', activationMessageHTML);
+                    
+                    document.getElementById('request-activation-btn').addEventListener('click', async () => {
+                        showToast('info', 'Mengirim permintaan aktivasi...');
+                        const requestButton = document.getElementById('request-activation-btn');
+                        requestButton.disabled = true;
+
+                        try {
+                            const response = await fetch(YOUR_REQUEST_ACTIVATION_API_ENDPOINT, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ accessKey, deviceId }),
+                            });
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                showToast('success', 'Permintaan otorisasi berhasil dikirim!');
+                                showMainMessage('info', `
+                                    <h3>Aktivasi Dikirim</h3>
+                                    <p>Permintaan otorisasi telah dikirim. Mohon tunggu persetujuan dari admin.</p>
+                                    <p>ID Perangkat Anda: <pre><code>${deviceId}</code></pre></p>
+                                `);
+                            } else {
+                                showToast('error', data.message || 'Gagal mengirim permintaan aktivasi.');
+                            }
+                        } catch (error) {
+                            console.error('Error mengirim permintaan aktivasi:', error);
+                            showToast('error', 'Terjadi kesalahan jaringan saat mengirim permintaan aktivasi.');
+                        } finally {
+                            requestButton.disabled = false;
+                        }
+                    });
+                } else if (validationData.details) {
+                    const errorTitle = validationData.details.status === 'DeviceAlreadyRegistered' ? 'Akses Kunci Sudah Terdaftar' : validationData.details.status;
+                    showMainMessage('error', `
+                        <h3>${errorTitle}</h3>
+                        <p>${validationData.message}</p>
+                    `);
+                } else {
+                    showToast('error', validationData.message || 'Error validasi tidak diketahui.');
+                }
+                return;
+            }
+
+            console.log('5. Access Key valid. Melanjutkan ke pembuatan panel...');
             if (!selectedPanelType) {
                 showToast('error', 'Silakan pilih tipe panel (Public/Private)!');
                 return;
             }
-
             if (!username || !hostingPackage) {
                 showToast('error', 'Username dan Paket Hosting harus diisi!');
                 return;
             }
-
             const usernameInput = document.getElementById('username');
             if (!usernameInput.checkValidity()) {
                 showToast('error', `Username tidak valid: ${usernameInput.title}`);
                 return;
             }
-
             const selectedPackage = PACKAGES[hostingPackage];
             if (!selectedPackage) {
                 showToast('error', 'Pilih paket hosting yang valid.');
@@ -180,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hostingPackage: hostingPackage, 
                 panelType: selectedPanelType, 
                 accessKey: accessKey,
+                deviceId: deviceId,
             }).toString();
 
             const finalRequestUrl = `${YOUR_CREATE_PANEL_API_ENDPOINT}?${requestParams}`;
@@ -188,14 +323,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(finalRequestUrl, {
                 method: 'GET',
             });
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('API Server Error:', errorText);
+              throw new Error(`Server returned status ${response.status}: ${errorText}`);
+            }
+
             const data = await response.json();
             
             console.log('7. Respons dari API diterima:', data);
-
-            if (response.ok && data.status) {
+            if (data.status) {
                 const result = data.result;
                 const panelDomainUrl = result.domain; 
-
                 const fullTextToCopy = `
 ==============================
    DETAIL AKUN PANEL ANDA   
@@ -209,7 +349,6 @@ Server ID: ${result.id_server}
 Domain: ${panelDomainUrl}
 ==============================
 `.trim();
-
                 const successMessageHTML = `
                     <div class="result-title">Panel Berhasil Dibuat!</div>
                     <div class="result-row"><span>Username:</span> <span id="copyUsernameValue">${result.username}</span></div>
@@ -219,7 +358,6 @@ Domain: ${panelDomainUrl}
                     <div class="result-row"><span>ID User:</span> <span>${result.id_user}</span></div>
                     <div class="result-row"><span>Server ID:</span> <span>${result.id_server}</span></div>
                     <div class="result-row"><span>Domain:</span> <span id="copyDomainValue"><a href="${panelDomainUrl}" target="_blank">${result.domain}</a></span></div>
-                    
                     <div class="result-actions">
                         <button class="copy-button" data-copy-target="copyUsernameValue">Copy Username</button>
                         <button class="copy-button" data-copy-target="copyPasswordValue">Copy Password</button>
@@ -235,7 +373,6 @@ Domain: ${panelDomainUrl}
                 createPanelForm.reset(); 
                 showToast('success', 'Panel berhasil dibuat!'); 
                 console.log('8. Proses berhasil. Pesan sukses ditampilkan.');
-
             } else {
                 const errorMessage = data.message || 'Terjadi kesalahan saat membuat panel.';
                 showMainMessage('error', `<b>Gagal membuat server!</b><br>Pesan: ${errorMessage}`); 
@@ -254,7 +391,6 @@ Domain: ${panelDomainUrl}
             console.log('10. Proses selesai. Loading dimatikan.');
         }
     });
-
     responseMessageDiv.addEventListener('click', async (event) => {
         if (event.target.classList.contains('copy-button')) {
             const targetId = event.target.dataset.copyTarget;
