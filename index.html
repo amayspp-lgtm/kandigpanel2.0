@@ -5,11 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Creator - Public/Private</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Ban Popup/Modal CSS --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--container-bg);
+            border: 2px solid var(--error-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(248, 81, 73, 0.4);
+            width: 90%;
+            max-width: 450px;
+            animation: modalFadeIn 0.3s ease-out forwards;
+            position: relative;
+        }
+        .modal-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--error-color);
+            text-align: center;
+            margin-top: 0;
+            text-shadow: 0 0 8px rgba(248, 81, 73, 0.3);
+        }
+        .modal-content p {
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+        .modal-content p strong {
+            color: var(--text-color);
+        }
+        .modal-content .close-button {
+            background: none;
+            border: none;
+            color: var(--placeholder-color);
+            font-size: 1.5em;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-content .close-button:hover {
+            color: var(--text-color);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
 </head>
 <body>
     <div class="background-particles">
@@ -72,6 +126,18 @@
     </div>
 
     <div id="toast-notification-container"></div>
+    
+    <div id="banModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button">&times;</button>
+            <h3>ACCOUNT BANNED</h3>
+            <p id="banReason"></p>
+            <p id="banTime"></p>
+            <p id="contactAdmin"></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
     <script src="main.js" type="module"></script>
 </body>
 </html>

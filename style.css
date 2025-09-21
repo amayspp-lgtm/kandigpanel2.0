@@ -15,7 +15,6 @@
     --shadow-color: rgba(0, 0, 0, 0.7);
     --gradient-1: linear-gradient(90deg, #61dafb 0%, #a464f4 100%); /* Adjusted gradient */
     --gradient-2: linear-gradient(90deg, #a464f4 0%, #61dafb 100%); /* Adjusted gradient */
-    --neon-glow: 0 0 5px var(--primary-accent), 0 0 10px var(--primary-accent), 0 0 20px var(--primary-accent);
 }
 
 body {
@@ -158,7 +157,7 @@ select.input-glow-border {
 }
 /* --- End Form Elements --- */
 
-/* --- Updated Button Style --- */
+/* --- Button Style --- */
 .cyber-button {
     width: 100%;
     padding: 16px;
@@ -218,50 +217,15 @@ select.input-glow-border {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
-    /* New: Disable glow when disabled */
-    text-shadow: none;
 }
 .cyber-button:disabled::before {
     animation: none;
     border-image: none;
     border-color: #30363d;
 }
+/* --- End Button Style --- */
 
-/* New: Glitch effect for button text when loading */
-.cyber-button.loading span:first-child {
-    animation: glitchText 0.8s infinite linear alternate-reverse;
-    padding-right: 10px; /* Space for dots */
-}
-@keyframes glitchText {
-    0% {
-        text-shadow: 0 0 var(--primary-accent), 0 0 var(--secondary-accent);
-        transform: translateX(0);
-    }
-    20% {
-        text-shadow: 2px 0 var(--primary-accent), -2px 0 var(--secondary-accent);
-        transform: translateX(-1px);
-    }
-    40% {
-        text-shadow: -2px 0 var(--primary-accent), 2px 0 var(--secondary-accent);
-        transform: translateX(1px);
-    }
-    60% {
-        text-shadow: 3px 0 var(--primary-accent), -3px 0 var(--secondary-accent);
-        transform: translateX(0);
-    }
-    80% {
-        text-shadow: -1px 0 var(--primary-accent), 1px 0 var(--secondary-accent);
-        transform: translateX(-1px);
-    }
-    100% {
-        text-shadow: 0 0 var(--primary-accent), 0 0 var(--secondary-accent);
-        transform: translateX(0);
-    }
-}
-/* --- End Updated Button Style --- */
-
-
-/* --- Updated Loader/Spinner Style --- */
+/* --- Loader/Spinner Style --- */
 .loader-dots {
     display: flex;
     align-items: center;
@@ -270,20 +234,17 @@ select.input-glow-border {
     width: 30px; /* Space for dots */
     height: 18px; /* Height of dots */
     display: none; /* Hidden by default */
-    position: relative; /* For the glow */
 }
 .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--primary-accent); /* Use primary accent for dots */
+    background-color: white;
     margin: 0 3px;
     animation: bounce 0.6s infinite alternate;
-    box-shadow: 0 0 5px var(--primary-accent), 0 0 10px var(--primary-accent), 0 0 20px var(--primary-accent);
 }
 .dot:nth-child(2) {
     animation-delay: 0.2s;
-    background: var(--secondary-accent); /* Secondary accent for middle dot */
 }
 .dot:nth-child(3) {
     animation-delay: 0.4s;
@@ -291,27 +252,9 @@ select.input-glow-border {
 @keyframes bounce {
     to { transform: translateY(-5px); }
 }
-/* --- End Updated Loader Style --- */
+/* --- End Loader Style --- */
 
-/* New: Progress Bar (Optional, can be used instead of or with dots) */
-.loading-progress-bar {
-    width: 0%; /* Starts at 0 */
-    height: 4px;
-    background-image: var(--gradient-1);
-    border-radius: 2px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    transition: width 0.5s ease-out; /* Smooth filling */
-    box-shadow: 0 0 5px var(--primary-accent), 0 0 10px var(--primary-accent), 0 0 20px var(--primary-accent);
-    opacity: 0; /* Hidden by default */
-}
-.cyber-button.loading .loading-progress-bar {
-    width: 100%; /* Fills up when loading */
-    opacity: 1;
-}
-
-
+/* --- Message/Result Display --- */
 #responseMessage {
     margin-top: 30px;
     padding: 25px;
@@ -450,7 +393,9 @@ select.input-glow-border {
 .contact-message a:hover {
     text-decoration: underline;
 }
+/* --- End Message/Result Display --- */
 
+/* --- Toast Notification --- */
 #toast-notification-container {
     position: fixed;
     top: 20px;
@@ -471,7 +416,7 @@ select.input-glow-border {
     align-items: center;
     gap: 10px;
     color: var(--text-color);
-    animation: slideInRight 0.4s ease-out forwards;
+    animation: slideInRight 0.4s ease-out forwards, fadeOut 0.5s ease-in forwards 2.5s;
     transform: translateX(100%);
     opacity: 0;
     min-width: 250px;
@@ -503,149 +448,3 @@ select.input-glow-border {
 
 @keyframes slideInRight { to { transform: translateX(0); opacity: 1; } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-#ban-popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    z-index: 1000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#ban-popup-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.ban-popup {
-    background-color: var(--container-bg);
-    padding: 30px 40px;
-    border-radius: 15px;
-    border: 2px solid var(--error-color);
-    box-shadow: 0 0 20px rgba(247, 71, 71, 0.5);
-    max-width: 450px;
-    width: 90%;
-    text-align: center;
-    margin-top: 50px;
-    transform: translateY(-20px) scale(0.9);
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-#ban-popup-overlay.show .ban-popup {
-    transform: translateY(0) scale(1);
-}
-
-.ban-popup h2 {
-    font-family: 'Montserrat', sans-serif;
-    color: var(--error-color);
-    font-weight: 700;
-    font-size: 1.8em;
-    margin-bottom: 20px;
-}
-
-.ban-popup .popup-content p {
-    font-size: 1em;
-    margin-bottom: 15px;
-    text-align: left;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
-}
-
-.ban-popup .popup-content p strong {
-    color: var(--placeholder-color);
-}
-
-.ban-popup .popup-content span {
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-#close-popup-btn {
-    margin-top: 25px;
-    width: 100%;
-    padding: 12px;
-    background-color: var(--error-color);
-    color: white;
-}
-
-#close-popup-btn:hover {
-    background-color: #d1463e;
-}
-
-#activation-popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    z-index: 1000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#activation-popup-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.activation-popup {
-    background-color: var(--container-bg);
-    padding: 30px 40px;
-    border-radius: 15px;
-    border: 2px solid var(--primary-accent);
-    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
-    max-width: 450px;
-    width: 90%;
-    text-align: center;
-    margin-top: 50px;
-    transform: translateY(-20px) scale(0.9);
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-#activation-popup-overlay.show .activation-popup {
-    transform: translateY(0) scale(1);
-}
-
-.activation-popup h2 {
-    font-family: 'Montserrat', sans-serif;
-    color: var(--primary-accent);
-    font-weight: 700;
-    font-size: 1.8em;
-    margin-bottom: 20px;
-}
-
-.activation-popup .activation-content p {
-    font-size: 1em;
-    margin-bottom: 15px;
-    color: var(--text-color);
-}
-
-#request-activation-btn {
-    margin-top: 25px;
-    width: 100%;
-    padding: 12px;
-    background-color: var(--primary-accent);
-    color: white;
-}
-
-#request-activation-btn:hover {
-    background-color: #0056b3;
-}
